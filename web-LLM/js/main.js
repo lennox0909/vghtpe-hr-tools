@@ -1,78 +1,68 @@
 import { DOM, SYSTEM_PROMPT } from './config.js';
 import { updateUIState, showError, clearMessagesDOM, appendMessageToDOM, scrollToBottom } from './ui.js';
-import { initSpeechRecognition } from './speech.js';
 import { initEngine } from './engine.js';
+import { initKnowledgeBase, searchRelevantQA } from './search.js'; // 引入檢索模組
 
 let engine = null;
-let status = 'idle'; // idle, loading, ready, generating
+let status = 'idle';
 let messageHistory = [];
-let wasInterrupted = false;
 
-// 初始化語音
-const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
+// 在畫面載入時，非同步初始化知識庫
+document.addEventListener('DOMContentLoaded', () => {
+    initKnowledgeBase(window.FAQ_DATA_URL); // window.FAQ_DATA_URL 在 index.html 宣告
+});
 
 async function loadModel() {
     const selectedModel = DOM.modelSelect.value;
     status = 'loading';
-    wasInterrupted = false;
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
-    
-    DOM.errorBanner.classList.add('hidden');
-    DOM.emptyState.classList.add('hidden');
-    DOM.settingsPanel.classList.add('hidden');
+    updateUIState(status);
     clearMessagesDOM();
-// 將系統提示詞作為隱藏的對話起點注入歷史紀錄中 (UI 模組不會將其渲染至畫面上)
-    messageHistory = [
-        { role: 'system', content: SYSTEM_PROMPT }
-    ];
-    // ==============
     
-    DOM.loadingIndicator.classList.replace('hidden', 'flex');
-    DOM.progressText.textContent = "正在初始化引擎與下載模型...";
-
+    // 初始化對話歷史，僅放入基礎系統提示詞 (不再全量注入 QA)
+    messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+    
     try {
         engine = await initEngine(selectedModel, (report) => {
             DOM.progressText.textContent = report.text;
-            scrollToBottom();
         });
         status = 'ready';
-        DOM.loadingIndicator.classList.replace('flex', 'hidden');
-        const welcomeText = `✅ 已載入模型 **${selectedModel}**。\n💡 點擊左下角麥克風可語音輸入！`;
-        messageHistory.push({ role: 'assistant', content: welcomeText });
-        appendMessageToDOM('assistant', welcomeText);
+        appendMessageToDOM('assistant', `✅ 已載入模型 **${selectedModel}**，並連結人事知識庫。`);
     } catch (err) {
         status = 'error';
-        DOM.loadingIndicator.classList.replace('flex', 'hidden');
-        showError(`載入失敗：\n${err.stack || err.message}`);
+        showError(`載入失敗：\n${err.message}`);
     } finally {
-        updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+        updateUIState(status);
     }
 }
 
 async function sendMessage(isContinue = false) {
-    if (speech?.getIsRecording()) speech.recognition.stop();
-
     let text = isContinue ? "請繼續未完成的回覆" : DOM.chatInput.value.trim();
+    if (!isContinue && !text) return;
+    
     if (!isContinue) {
-        if (!text || status !== 'ready' || !engine) return;
         DOM.chatInput.value = '';
         DOM.chatInput.style.height = '48px';
     }
 
-    wasInterrupted = false;
-    messageHistory.push({ role: 'user', content: text });
+    // 1. 將使用者輸入顯示在畫面上
     appendMessageToDOM('user', text);
     
+    // 2. 動態檢索知識庫 (動態 RAG)
+    const context = searchRelevantQA(text);
+    
+    // 3. 將檢索結果與使用者提問合併，存入歷史紀錄 (模型會看到，但畫面不會顯示 context)
+    const promptForModel = text + context;
+    messageHistory.push({ role: 'user', content: promptForModel });
+    
     status = 'generating';
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+    updateUIState(status);
     const aiTextBlock = appendMessageToDOM('assistant', "");
 
     try {
         const chunks = await engine.chat.completions.create({
             messages: messageHistory,
             stream: true,
-            temperature: parseFloat(DOM.tempSlider.value),
-            top_p: parseFloat(DOM.topPSlider.value),
+            temperature: 0.1, // 降低隨機性，讓模型更精確引用資料
         });
 
         let fullReply = "";
@@ -81,46 +71,13 @@ async function sendMessage(isContinue = false) {
             aiTextBlock.textContent = fullReply;
             scrollToBottom();
         }
+        
+        // 將模型實際的回答存回歷史紀錄
         messageHistory.push({ role: 'assistant', content: fullReply });
     } catch (err) {
-        if (err.message?.toLowerCase().includes('abort')) {
-            aiTextBlock.textContent += " ⏹️ [已停止]";
-            wasInterrupted = true;
-        } else {
-            console.error(err);
-            aiTextBlock.textContent = "❌ 發生錯誤，無法生成回覆。";
-        }
+        aiTextBlock.textContent = "❌ 發生錯誤，無法生成回覆。";
     } finally {
         status = 'ready';
-        updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+        updateUIState(status);
     }
 }
-
-// 綁定事件
-DOM.loadBtn.addEventListener('click', loadModel);
-DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
-DOM.continueBtn.addEventListener('click', () => sendMessage(true));
-DOM.settingsBtn.addEventListener('click', () => DOM.settingsPanel.classList.toggle('hidden'));
-DOM.tempSlider.addEventListener('input', (e) => DOM.tempVal.textContent = e.target.value);
-DOM.topPSlider.addEventListener('input', (e) => DOM.topPVal.textContent = e.target.value);
-
-DOM.micBtn.addEventListener('click', () => {
-    if (status === 'loading' || status === 'generating') return;
-    speech?.getIsRecording() ? speech.recognition.stop() : speech.recognition.start();
-});
-
-DOM.chatInput.addEventListener('input', function() {
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
-    this.style.height = '48px';
-    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-});
-
-let enterCount = 0;
-DOM.chatInput.addEventListener('keydown', (e) => {
-    if (status !== 'ready') return;
-    if (e.key === 'Enter') {
-        if (++enterCount === 4) { e.preventDefault(); enterCount = 0; sendMessage(); }
-    } else enterCount = 0;
-});
-
-window.addEventListener('resize', () => status !== 'idle' && scrollToBottom());

@@ -11,7 +11,7 @@
   color_theme: indigo
   description: 基於 Markmap 技術的動態心智圖。適合業務模組化思考與架構拆解，支援 Markdown 即時編輯與轉換。
 
-- title: 本機端 AI聊天機器人-試用
+- title: 本機端「北榮人事室 AI 助理」
   url: ./web-LLM/
   icon: fa-regular fa-comment-dots
   color_theme: indigo
