@@ -12,7 +12,7 @@ export async function initKnowledgeBase(dataUrl) {
     }
 }
 
-// 模糊檢索演算法 (涵蓋 q, a, keywords)
+// 模糊檢索演算法 (涵蓋 q, a, keywords，並優化容錯門檻)
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
@@ -28,45 +28,50 @@ export function searchRelevantQA(userMessage, topK = 3) {
 
     const scoredQA = faqDatabase.map(item => {
         let score = 0;
-        const qStr = item.q.toLowerCase();
-        const aStr = item.a.toLowerCase();
-        const cleanQ = item.q.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
+        // 加入防呆機制，避免 JSON 欄位遺失導致程式崩潰
+        const qStr = (item.q || "").toLowerCase();
+        const aStr = (item.a || "").toLowerCase();
+        const cleanQ = qStr.replace(/[?？!！,，.。~～\s]/g, '');
         
-        // 1. 精準命中判斷 (代表使用者點擊了按鈕)
-        if (cleanQ === query || item.q.trim() === rawQuery) {
+        // 1. 精準命中判斷 (代表使用者點選了按鈕)
+        if (cleanQ === query || (item.q && item.q.trim() === rawQuery)) {
             score += 1000;
             isExactMatch = true;
         }
 
         // 2. 關鍵字 (keywords) 比對
-        item.keywords.forEach(keyword => {
-            const kw = keyword.toLowerCase();
-            if (query.includes(kw)) score += 15;
-            else if (kw.includes(query)) score += 10;
-        });
+        if (item.keywords && Array.isArray(item.keywords)) {
+            item.keywords.forEach(keyword => {
+                const kw = keyword.toLowerCase();
+                if (query.includes(kw)) score += 20; // 提高自訂關鍵字權重
+                else if (kw.includes(query)) score += 10;
+            });
+        }
 
         // 3. 問題 (q) 與 答案 (a) 全文包含比對
-        if (qStr.includes(query)) score += 10;
-        if (query.includes(qStr)) score += 10;
-        if (aStr.includes(query)) score += 8; // 【新增】答案內含使用者輸入字眼，給予高分
+        if (qStr.includes(query)) score += 15;
+        if (query.includes(qStr)) score += 15;
+        if (aStr.includes(query)) score += 10; // 只要答案包含完整字眼，直接給 10 分
 
         // 4. Bigram 模糊比對容錯機制 (涵蓋 q 與 a)
         if (query.length >= 2) {
             for (let i = 0; i < query.length - 1; i++) {
                 const bigram = query.substring(i, i + 2);
-                if (qStr.includes(bigram)) score += 3;
-                if (aStr.includes(bigram)) score += 2; // 【提升權重】提高答案模糊比對的分數
+                if (qStr.includes(bigram)) score += 5; // 提高權重
+                if (aStr.includes(bigram)) score += 3; // 提高答案模糊比對的權重
             }
         } else if (query.length === 1) {
-            if (qStr.includes(query)) score += 2;
-            if (aStr.includes(query)) score += 1; // 【新增】涵蓋單一字元在答案中的搜尋
+            if (qStr.includes(query)) score += 3;
+            if (aStr.includes(query)) score += 2;
         }
 
         return { ...item, score };
     });
 
+    // 【核心修正】：將過濾門檻降為 > 0。
+    // 只要有任何蛛絲馬跡對應到 (分數大於0)，就保留進候選池，再透過 sort 抓出前 3 名。
     const relevantResults = scoredQA
-        .filter(item => item.score > 2)
+        .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, topK);
 
