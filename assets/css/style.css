@@ -1,0 +1,70 @@
+/* 人事室智慧工具箱 - 全域樣式表 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* 毛玻璃卡片效果 */
+.glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* 英雄區塊背景圖樣 */
+.hero-pattern {
+    background-color: #1e293b;
+    background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+/* 工作流步驟連接線 (僅在桌面端顯示) */
+.workflow-step::after {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
+}
+
+/* 隱藏最後一個步驟的連接線 */
+.workflow-step:last-child::after {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .workflow-step::after {
+        display: none;
+    }
+}
+
+/* 聯絡資訊彈窗 (Modal) 動畫狀態 */
+.modal-overlay {
+    transition: opacity 0.3s ease;
+}
+
+.modal-container {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.modal-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-hidden .modal-container {
+    transform: scale(0.9);
+    opacity: 0;
+}
