@@ -30,9 +30,10 @@ layout: default
         {% endfor %}
     </div>
 
-    <!-- 利用資料驅動：自動渲染 workflows.yml 裡的所有工作流區塊 -->
+    <!-- 利用資料驅動：先 assign 賦值避開語法解析錯誤，再傳入 include -->
     {% for workflow in site.data.workflows %}
-        {% include workflow.html data=workflow[1] %}
+        {% assign workflow_data = workflow[1] %}
+        {% include workflow.html data=workflow_data %}
     {% endfor %}
     
 </main>
