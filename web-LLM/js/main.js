@@ -1,4 +1,4 @@
-import { DOM } from './config.js';
+import { DOM, SYSTEM_PROMPT } from './config.js';
 import { updateUIState, showError, clearMessagesDOM, appendMessageToDOM, scrollToBottom } from './ui.js';
 import { initSpeechRecognition } from './speech.js';
 import { initEngine } from './engine.js';
@@ -21,7 +21,11 @@ async function loadModel() {
     DOM.emptyState.classList.add('hidden');
     DOM.settingsPanel.classList.add('hidden');
     clearMessagesDOM();
-    messageHistory = [];
+// 將系統提示詞作為隱藏的對話起點注入歷史紀錄中 (UI 模組不會將其渲染至畫面上)
+    messageHistory = [
+        { role: 'system', content: SYSTEM_PROMPT }
+    ];
+    // ==============
     
     DOM.loadingIndicator.classList.replace('hidden', 'flex');
     DOM.progressText.textContent = "正在初始化引擎與下載模型...";
