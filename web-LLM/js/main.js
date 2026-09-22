@@ -27,6 +27,7 @@ async function loadModel() {
     DOM.settingsPanel.classList.add('hidden');
     clearMessagesDOM();
     
+    // 初始化對話歷史，僅放入基礎系統提示詞
     messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
     
     DOM.loadingIndicator.classList.replace('hidden', 'flex');
@@ -67,36 +68,50 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
+    // ==========================================
+    // 【記憶瘦身策略】：滑動視窗限制歷史長度
+    // 保留 System Prompt，並只保留最近的 6 筆對話 (約 3 輪 QA)
+    // ==========================================
+    if (messageHistory.length > 7) {
+        messageHistory = [messageHistory[0], ...messageHistory.slice(-6)];
+    }
+
+    // 將「乾淨無加料」的使用者提問存入歷史，大幅節省 Token
+    messageHistory.push({ role: 'user', content: text });
+    
     // 動態檢索知識庫
     const searchResult = searchRelevantQA(text);
     const context = searchResult.context;
     const suggestedQuestions = searchResult.questions;
     const isExactMatch = searchResult.isExactMatch;
     
+    // ==========================================
+    // 【瞬時注入策略】：準備本次專用的加料提示詞
+    // ==========================================
     let promptForModel = text;
     
     if (context !== "") {
         if (isExactMatch) {
-            // 【情況 A：精準命中】強制 AI 直接回答
             promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n請依據【內部參考資訊】給出精準解答，直接回覆答案，絕對不要詢問使用者想了解哪一項。`;
         } else {
-            // 【情況 B：模糊搜尋】嚴格限制 AI 只能輸出引導語，防範幻覺
             promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字且對應多筆資料，請「只能」回覆這句話：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」，絕對不可以加上任何其他文字、網址連結或 HTML 符號。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
         }
     } else {
-        // 【情況 C：無新資料】
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
-    messageHistory.push({ role: 'user', content: promptForModel });
+    // 建立「本次呼叫專用」的訊息陣列，將最後一筆提問替換為帶有法規的加料版
+    const currentMessages = [...messageHistory];
+    currentMessages[currentMessages.length - 1] = { role: 'user', content: promptForModel };
     
     status = 'generating';
     updateUIState(status, speech?.getIsRecording(), wasInterrupted);
     const aiTextBlock = appendMessageToDOM('assistant', "");
 
     try {
+        // 使用暫存的 currentMessages 進行推論，法規長文不會汙染長久記憶
         const chunks = await engine.chat.completions.create({
-            messages: messageHistory,
+            messages: currentMessages,
             stream: true,
             temperature: parseFloat(DOM.tempSlider.value),
             top_p: parseFloat(DOM.topPSlider.value),
@@ -109,9 +124,6 @@ async function sendMessage(isContinue = false) {
             scrollToBottom();
         }
         
-        // ==========================================
-        // UI 後處理：強制覆蓋幻覺文字並生成按鈕
-        // ==========================================
         if (suggestedQuestions && suggestedQuestions.length > 0) {
             const btnContainer = document.createElement('div');
             btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
@@ -119,7 +131,6 @@ async function sendMessage(isContinue = false) {
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
             
             if (isAskingToChoose) {
-                // 強制覆蓋，抹除任何 AI 捏造的 HTML 或網址
                 aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
             } else {
                 const hint = document.createElement('div');
@@ -131,8 +142,8 @@ async function sendMessage(isContinue = false) {
             suggestedQuestions.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = isAskingToChoose 
-                    ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95"
-                    : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95";
+                    ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal"
+                    : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
                 
                 btn.textContent = opt;
                 btn.onclick = () => {
@@ -147,6 +158,7 @@ async function sendMessage(isContinue = false) {
             scrollToBottom();
         }
         
+        // 記憶瘦身：將乾淨的回答存入長久記憶
         messageHistory.push({ role: 'assistant', content: fullReply });
     } catch (err) {
         if (err.message?.toLowerCase().includes('abort')) {
@@ -154,7 +166,7 @@ async function sendMessage(isContinue = false) {
             wasInterrupted = true;
         } else {
             console.error(err);
-            aiTextBlock.textContent = "❌ 發生錯誤，無法生成回覆。";
+            aiTextBlock.textContent = `❌ 發生錯誤，無法生成回覆。\n(錯誤代碼: ${err.message})`;
         }
     } finally {
         status = 'ready';
@@ -162,7 +174,7 @@ async function sendMessage(isContinue = false) {
     }
 }
 
-// 5. 事件綁定
+// 事件綁定 (維持不變)
 DOM.loadBtn.addEventListener('click', loadModel);
 DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
 DOM.continueBtn.addEventListener('click', () => sendMessage(true));
