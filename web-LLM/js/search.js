@@ -12,7 +12,7 @@ export async function initKnowledgeBase(dataUrl) {
     }
 }
 
-// 模糊檢索演算法 (N-gram 與雙向比對 + 精準命中判斷)
+// 模糊檢索演算法 (涵蓋 q, a, keywords)
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
@@ -32,32 +32,34 @@ export function searchRelevantQA(userMessage, topK = 3) {
         const aStr = item.a.toLowerCase();
         const cleanQ = item.q.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
         
-        // 1. 完全命中判斷 (給予絕對高分 1000，代表使用者點擊了按鈕)
+        // 1. 精準命中判斷 (代表使用者點擊了按鈕)
         if (cleanQ === query || item.q.trim() === rawQuery) {
             score += 1000;
             isExactMatch = true;
         }
 
-        // 2. 雙向關鍵字比對
+        // 2. 關鍵字 (keywords) 比對
         item.keywords.forEach(keyword => {
             const kw = keyword.toLowerCase();
             if (query.includes(kw)) score += 15;
             else if (kw.includes(query)) score += 10;
         });
 
-        // 3. 問題標題雙向比對
+        // 3. 問題 (q) 與 答案 (a) 全文包含比對
         if (qStr.includes(query)) score += 10;
         if (query.includes(qStr)) score += 10;
+        if (aStr.includes(query)) score += 8; // 【新增】答案內含使用者輸入字眼，給予高分
 
-        // 4. Bigram 模糊比對
+        // 4. Bigram 模糊比對容錯機制 (涵蓋 q 與 a)
         if (query.length >= 2) {
             for (let i = 0; i < query.length - 1; i++) {
                 const bigram = query.substring(i, i + 2);
                 if (qStr.includes(bigram)) score += 3;
-                if (aStr.includes(bigram)) score += 1;
+                if (aStr.includes(bigram)) score += 2; // 【提升權重】提高答案模糊比對的分數
             }
         } else if (query.length === 1) {
             if (qStr.includes(query)) score += 2;
+            if (aStr.includes(query)) score += 1; // 【新增】涵蓋單一字元在答案中的搜尋
         }
 
         return { ...item, score };
@@ -82,14 +84,12 @@ export function searchRelevantQA(userMessage, topK = 3) {
     
     relevantResults.forEach((res, idx) => {
         if (isExactMatch) {
-            // 精準命中時，LLM 只需要看第一筆，其餘作為延伸閱讀
             if (idx === 0) {
                 context += `--- [精準命中資料] ---\n問：${res.q}\n答：${res.a}\n\n`;
             } else {
                 questions.push(res.q); 
             }
         } else {
-            // 模糊比對，餵給 LLM 並產生選項按鈕
             context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}\n\n`;
             questions.push(res.q);
         }
