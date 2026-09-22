@@ -9,6 +9,9 @@ let status = 'idle';
 let messageHistory = [];
 let wasInterrupted = false;
 
+// 定義快取的 Key
+const CACHE_KEY = 'vghtpe_hr_chat_history';
+
 const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,8 +30,29 @@ async function loadModel() {
     DOM.settingsPanel.classList.add('hidden');
     clearMessagesDOM();
     
-    // 初始化對話歷史，僅放入基礎系統提示詞
-    messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+    // ==========================================
+    // 【新增】：從瀏覽器快取還原對話紀錄
+    // ==========================================
+    const savedHistory = localStorage.getItem(CACHE_KEY);
+    if (savedHistory) {
+        try {
+            messageHistory = JSON.parse(savedHistory);
+            // 重新渲染歷史對話到畫面上
+            messageHistory.forEach(msg => {
+                if (msg.role === 'user') {
+                    appendMessageToDOM('user', msg.content);
+                } else if (msg.role === 'assistant') {
+                    appendMessageToDOM('assistant', msg.content);
+                }
+            });
+        } catch (e) {
+            console.error("❌ 無法讀取快取，已重置記憶", e);
+            messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+        }
+    } else {
+        // 沒有快取，初始化全新記憶
+        messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+    }
     
     DOM.loadingIndicator.classList.replace('hidden', 'flex');
     DOM.progressText.textContent = "正在獲取知識庫與初始化引擎...";
@@ -41,8 +65,16 @@ async function loadModel() {
         status = 'ready';
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
         
-        const welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？\n*(💡 點擊左下角麥克風可使用語音輸入)*`;
+        // 根據是否有歷史紀錄，給予不同的歡迎詞
+        let welcomeText = "";
+        if (messageHistory.length > 1) {
+            welcomeText = `⚡ 模型（**${selectedModel}**）已重新連線，您可以接續先前的對話。`;
+        } else {
+            welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？\n*(💡 點擊左下角麥克風可使用語音輸入)*`;
+        }
+        
         appendMessageToDOM('assistant', welcomeText);
+        scrollToBottom();
     } catch (err) {
         status = 'error';
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
@@ -68,28 +100,22 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
-    // ==========================================
-    // 【記憶瘦身策略】：滑動視窗限制歷史長度
-    // 保留 System Prompt，並只保留最近的 6 筆對話 (約 3 輪 QA)
-    // ==========================================
+    // 【記憶瘦身策略】：滑動視窗，永遠只保留 System Prompt + 最近 6 筆對話
     if (messageHistory.length > 7) {
         messageHistory = [messageHistory[0], ...messageHistory.slice(-6)];
     }
 
-    // 將「乾淨無加料」的使用者提問存入歷史，大幅節省 Token
+    // 將提問存入陣列，並同步寫入快取
     messageHistory.push({ role: 'user', content: text });
+    localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
     
-    // 動態檢索知識庫
     const searchResult = searchRelevantQA(text);
     const context = searchResult.context;
     const suggestedQuestions = searchResult.questions;
     const isExactMatch = searchResult.isExactMatch;
     
-    // ==========================================
-    // 【瞬時注入策略】：準備本次專用的加料提示詞
-    // ==========================================
+    // 【瞬時注入策略】：產生「本次專用」的加料提示詞
     let promptForModel = text;
-    
     if (context !== "") {
         if (isExactMatch) {
             promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n請依據【內部參考資訊】給出精準解答，直接回覆答案，絕對不要詢問使用者想了解哪一項。`;
@@ -100,7 +126,7 @@ async function sendMessage(isContinue = false) {
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
-    // 建立「本次呼叫專用」的訊息陣列，將最後一筆提問替換為帶有法規的加料版
+    // 複製一份暫存的訊息串，用於呼叫模型，避免污染長久記憶
     const currentMessages = [...messageHistory];
     currentMessages[currentMessages.length - 1] = { role: 'user', content: promptForModel };
     
@@ -109,7 +135,6 @@ async function sendMessage(isContinue = false) {
     const aiTextBlock = appendMessageToDOM('assistant', "");
 
     try {
-        // 使用暫存的 currentMessages 進行推論，法規長文不會汙染長久記憶
         const chunks = await engine.chat.completions.create({
             messages: currentMessages,
             stream: true,
@@ -158,8 +183,10 @@ async function sendMessage(isContinue = false) {
             scrollToBottom();
         }
         
-        // 記憶瘦身：將乾淨的回答存入長久記憶
+        // 將回答存入陣列，並同步寫入快取
         messageHistory.push({ role: 'assistant', content: fullReply });
+        localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
+        
     } catch (err) {
         if (err.message?.toLowerCase().includes('abort')) {
             aiTextBlock.textContent += " ⏹️ [已停止]";
