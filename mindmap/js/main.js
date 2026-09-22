@@ -4,8 +4,6 @@ import { updateMindmap, fitMindmap, zoomMindmap } from './renderer.js';
 import { initFileIO } from './file-io.js';
 import { showModal } from './modal.js';
 
-const defaultContent = `# 歡迎使用心智圖編輯器\n- **即時預覽**：左側編輯，右側立即顯示結果\n- **快速縮放**：按下 \`ctrl\` + 滑鼠滾輪`;
-
 const cmEditor = CodeMirror.fromTextArea(DOM.editor, {
     lineNumbers: true, mode: 'markdown', lineWrapping: true, tabSize: 2,
     extraKeys: { "Tab": (cm) => cm.somethingSelected() ? cm.indentSelection("add") : cm.replaceSelection("  ", "end", "+input") }
@@ -40,10 +38,30 @@ DOM.btnFit.addEventListener('click', fitMindmap);
 DOM.btnZoomIn.addEventListener('click', () => zoomMindmap(1.2));
 DOM.btnZoomOut.addEventListener('click', () => zoomMindmap(0.8));
 
-// 啟動
+// 啟動佈局與檔案 IO 事件
 initLayout(cmEditor, fitMindmap);
 initFileIO(cmEditor, debounceUpdate);
 
-const savedContent = localStorage.getItem(STORAGE_KEY);
-cmEditor.setValue(savedContent || defaultContent);
-debounceUpdate(savedContent || defaultContent, true);
+// 非同步載入初始內容：優先讀取 LocalStorage，否則抓取 sample.md
+async function initEditor() {
+    const savedContent = localStorage.getItem(STORAGE_KEY);
+    if (savedContent) {
+        cmEditor.setValue(savedContent);
+        debounceUpdate(savedContent, true);
+    } else {
+        try {
+            const response = await fetch('sample.md');
+            if (!response.ok) throw new Error('無法載入 sample.md');
+            const defaultContent = await response.text();
+            cmEditor.setValue(defaultContent);
+            debounceUpdate(defaultContent, true);
+        } catch (error) {
+            console.warn(error);
+            const fallbackContent = `# 歡迎使用心智圖編輯器\n- **即時預覽**：左側編輯，右側立即顯示結果`;
+            cmEditor.setValue(fallbackContent);
+            debounceUpdate(fallbackContent, true);
+        }
+    }
+}
+
+initEditor();
