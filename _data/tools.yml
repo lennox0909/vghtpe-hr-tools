@@ -23,12 +23,6 @@
   color_theme: indigo
   description: 中華民國政府行政機關辦公日曆表
 
-- title: 特別休假日數試算工具
-  url: ./restdays/
-  icon: fa-regular fa-calendar-days
-  color_theme: indigo
-  description: 測試版，僅供參考！！
-
 - title: PGY轉任住院醫師休假天數計算機
   url: ./resident/
   icon: fa-user-doctor
