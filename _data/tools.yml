@@ -2,11 +2,48 @@
   url: ./diagram/
   icon: fa-code-branch
   color_theme: blue
-  badge: "2026.05.25 微軟發布 VS Code 1.121..."
+  badge: "2026.05.25 微軟發布 VS Code 1.121，更新加入 Mermaid 圖表預覽與本機HTML檔案預覽，所以此工具不再繼續維護。"
   description: 使用 Mermaid 程式碼定義業務流程圖實作，確保作業流程圖同步更新。
 
 - title: 心智圖即時編輯器
   url: ./mindmap/
   icon: fa-brain
   color_theme: indigo
-  description: 基於 Markmap 技術的動態心智圖。適合業務模組化思考與架構拆解。
+  description: 基於 Markmap 技術的動態心智圖。適合業務模組化思考與架構拆解，支援 Markdown 即時編輯與轉換。
+
+- title: 本機端 AI聊天機器人-試用
+  url: ./web-LLM/
+  icon: fa-regular fa-comment-dots
+  color_theme: indigo
+  description: 基於 WebGPU 技術，選擇適合您個人電腦的小模型，開啟私人對話吧。
+
+- title: 系統架構圖編輯器
+  url: ./flow-charter/
+  icon: fa-wand-magic-sparkles
+  color_theme: indigo
+  badge: "2026.05.25 微軟發布 VS Code 1.121，更新加入 Mermaid 圖表預覽與本機HTML檔案預覽，所以此工具不再繼續維護。"
+  description: 指定您的流程圖，即時產生系統架構圖！
+
+- title: 台灣辦公日曆與計算機
+  url: ./taiwan-holidays/
+  icon: fa-regular fa-calendar-days
+  color_theme: indigo
+  description: 中華民國政府行政機關辦公日曆表
+
+- title: 特別休假日數試算工具
+  url: ./restdays/
+  icon: fa-regular fa-calendar-days
+  color_theme: indigo
+  description: 測試版，僅供參考！！
+
+- title: PGY轉任住院醫師休假天數計算機
+  url: ./resident/
+  icon: fa-user-doctor
+  color_theme: indigo
+  description: Courtesy Of 人事室考核組-孫祥恩
+
+- title: 契約人員薪酬計算機
+  url: ./payment-calc/
+  icon: fa-wand-magic-sparkles
+  color_theme: indigo
+  description: 115年版本

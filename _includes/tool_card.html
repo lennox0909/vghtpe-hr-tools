@@ -1,0 +1,16 @@
+<a href="{{ include.tool.url }}" target="_blank" rel="noopener noreferrer" class="glass-card p-8 rounded-3xl block group">
+    <div class="w-16 h-16 bg-{{ include.tool.color_theme }}-50 text-{{ include.tool.color_theme }}-600 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-{{ include.tool.color_theme }}-600 group-hover:text-white transition-all duration-300 shadow-sm">
+        <i class="fa-solid {{ include.tool.icon }} text-2xl"></i>
+    </div>
+    <h3 class="text-xl font-bold mb-3 text-slate-900">{{ include.tool.title }}</h3>
+    
+    {% if include.tool.badge %}
+    <p class="text-slate-500 text-sm font-bold leading-relaxed mb-6">{{ include.tool.badge }}</p>
+    {% endif %}
+    
+    <p class="text-slate-500 text-sm leading-relaxed mb-6">{{ include.tool.description }}</p>
+    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-{{ include.tool.color_theme }}-600 font-bold text-sm tracking-wide group-hover:mr-2 transition-all">進入工具</span>
+        <i class="fa-solid fa-circle-arrow-right text-{{ include.tool.color_theme }}-600 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all"></i>
+    </div>
+</a>
