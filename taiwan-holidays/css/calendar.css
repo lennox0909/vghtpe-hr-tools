@@ -1,0 +1,18 @@
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 1px;
+    background-color: #e5e7eb;
+    border: 1px solid #e5e7eb;
+}
+.calendar-cell { background-color: white; }
+.calendar-cell.holiday { background-color: #fee2e2; }
+.calendar-cell.makeup-work { background-color: #e0f2fe; }
+.calendar-cell.other-month { background-color: #f9fafb; color: #9ca3af; }
+.holiday-text { color: #dc2626; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.modal-enter { opacity: 0; transform: scale(0.95); }
+.modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.2s ease-out; }
