@@ -9,8 +9,9 @@ let status = 'idle';
 let messageHistory = [];
 let wasInterrupted = false;
 
-// 定義快取的 Key
 const CACHE_KEY = 'vghtpe_hr_chat_history';
+const ASKED_CACHE_KEY = 'vghtpe_hr_asked_questions'; // 新增：用於記錄問過的問題
+let askedQuestions = new Set(); // 新增：使用 Set 來確保問題不重複
 
 const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
 
@@ -31,13 +32,14 @@ async function loadModel() {
     clearMessagesDOM();
     
     // ==========================================
-    // 【新增】：從瀏覽器快取還原對話紀錄
+    // 從瀏覽器快取還原對話與「已問過的問題」清單
     // ==========================================
     const savedHistory = localStorage.getItem(CACHE_KEY);
+    const savedAsked = localStorage.getItem(ASKED_CACHE_KEY);
+
     if (savedHistory) {
         try {
             messageHistory = JSON.parse(savedHistory);
-            // 重新渲染歷史對話到畫面上
             messageHistory.forEach(msg => {
                 if (msg.role === 'user') {
                     appendMessageToDOM('user', msg.content);
@@ -45,13 +47,20 @@ async function loadModel() {
                     appendMessageToDOM('assistant', msg.content);
                 }
             });
+            
+            // 還原已問過的問題紀錄
+            if (savedAsked) {
+                askedQuestions = new Set(JSON.parse(savedAsked));
+            }
         } catch (e) {
             console.error("❌ 無法讀取快取，已重置記憶", e);
             messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+            askedQuestions.clear();
         }
     } else {
-        // 沒有快取，初始化全新記憶
         messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+        askedQuestions.clear();
+        localStorage.removeItem(ASKED_CACHE_KEY);
     }
     
     DOM.loadingIndicator.classList.replace('hidden', 'flex');
@@ -65,7 +74,6 @@ async function loadModel() {
         status = 'ready';
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
         
-        // 根據是否有歷史紀錄，給予不同的歡迎詞
         let welcomeText = "";
         if (messageHistory.length > 1) {
             welcomeText = `⚡ 模型（**${selectedModel}**）已重新連線，您可以接續先前的對話。`;
@@ -100,21 +108,23 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
-    // 【記憶瘦身策略】：滑動視窗，永遠只保留 System Prompt + 最近 6 筆對話
+    // 記憶瘦身
     if (messageHistory.length > 7) {
         messageHistory = [messageHistory[0], ...messageHistory.slice(-6)];
     }
 
-    // 將提問存入陣列，並同步寫入快取
+    // 將提問存入歷史陣列與「已問清單」中，並同步快取
     messageHistory.push({ role: 'user', content: text });
+    askedQuestions.add(text); // 【新增】紀錄使用者問過的問題
+    
     localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
+    localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions])); // 將 Set 轉 Array 存入
     
     const searchResult = searchRelevantQA(text);
     const context = searchResult.context;
     const suggestedQuestions = searchResult.questions;
     const isExactMatch = searchResult.isExactMatch;
     
-    // 【瞬時注入策略】：產生「本次專用」的加料提示詞
     let promptForModel = text;
     if (context !== "") {
         if (isExactMatch) {
@@ -126,7 +136,6 @@ async function sendMessage(isContinue = false) {
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
-    // 複製一份暫存的訊息串，用於呼叫模型，避免污染長久記憶
     const currentMessages = [...messageHistory];
     currentMessages[currentMessages.length - 1] = { role: 'user', content: promptForModel };
     
@@ -149,41 +158,53 @@ async function sendMessage(isContinue = false) {
             scrollToBottom();
         }
         
+        // ==========================================
+        // 氣泡按鈕動態渲染 (加入過濾機制)
+        // ==========================================
         if (suggestedQuestions && suggestedQuestions.length > 0) {
-            const btnContainer = document.createElement('div');
-            btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
-
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
             
-            if (isAskingToChoose) {
-                aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
-            } else {
-                const hint = document.createElement('div');
-                hint.className = "text-xs text-slate-400 font-medium mb-1";
-                hint.textContent = "💡 您可能也想了解：";
-                btnContainer.appendChild(hint);
+            // 【核心邏輯】：決定要顯示哪些按鈕
+            let displayQuestions = suggestedQuestions;
+            if (!isAskingToChoose) {
+                // 如果是「💡 您可能也想了解」的延伸閱讀，過濾掉已經問過的問題
+                displayQuestions = suggestedQuestions.filter(opt => !askedQuestions.has(opt));
             }
 
-            suggestedQuestions.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = isAskingToChoose 
-                    ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal"
-                    : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
-                
-                btn.textContent = opt;
-                btn.onclick = () => {
-                    DOM.chatInput.value = opt;
-                    DOM.chatInput.dispatchEvent(new Event('input'));
-                    DOM.sendBtn.click();
-                };
-                btnContainer.appendChild(btn);
-            });
+            // 只有在過濾後「還有」按鈕可以顯示時，才建立按鈕區塊
+            if (displayQuestions.length > 0) {
+                const btnContainer = document.createElement('div');
+                btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
 
-            aiTextBlock.parentElement.appendChild(btnContainer);
-            scrollToBottom();
+                if (isAskingToChoose) {
+                    aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
+                } else {
+                    const hint = document.createElement('div');
+                    hint.className = "text-xs text-slate-400 font-medium mb-1";
+                    hint.textContent = "💡 您可能也想了解：";
+                    btnContainer.appendChild(hint);
+                }
+
+                displayQuestions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = isAskingToChoose 
+                        ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal"
+                        : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
+                    
+                    btn.textContent = opt;
+                    btn.onclick = () => {
+                        DOM.chatInput.value = opt;
+                        DOM.chatInput.dispatchEvent(new Event('input'));
+                        DOM.sendBtn.click();
+                    };
+                    btnContainer.appendChild(btn);
+                });
+
+                aiTextBlock.parentElement.appendChild(btnContainer);
+                scrollToBottom();
+            }
         }
         
-        // 將回答存入陣列，並同步寫入快取
         messageHistory.push({ role: 'assistant', content: fullReply });
         localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
         
