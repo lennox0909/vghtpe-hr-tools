@@ -126,4 +126,10 @@ title: AI 聊天機器人 (WebGPU)
     </footer>
 </div>
 
+<!-- 1. 必須先宣告 FAQ 資料路徑 -->
+<script>
+    window.FAQ_DATA_URL = "{{ '/web-LLM/data/faq.json' | relative_url }}";
+</script>
+
+<!-- 2. 再引入主程式 -->
 <script type="module" src="{{ '/web-LLM/js/main.js' | relative_url }}"></script>

@@ -14,7 +14,9 @@ const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, was
 
 // 2. 畫面載入時，初始化人事知識庫
 document.addEventListener('DOMContentLoaded', () => {
-    initKnowledgeBase(window.FAQ_DATA_URL);
+    // 加上預設相對路徑 './data/faq.json' 作為安全防護
+    const dataUrl = window.FAQ_DATA_URL || './data/faq.json';
+    initKnowledgeBase(dataUrl);
 });
 
 // 3. 載入模型邏輯
