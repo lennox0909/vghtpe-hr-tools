@@ -1,0 +1,33 @@
+---
+layout: default
+title: 契約人員薪酬計算機
+---
+
+<!-- 採用 Tailwind 組合樣式 (CARP)，動態計算可用高度 (扣除 Navbar) -->
+<div class="w-full flex flex-col items-center justify-center relative bg-slate-50" style="height: calc(100vh - 70px);">
+    
+    <!-- 載入中 / 降級提示區塊 (放置於底層 z-0) -->
+    <div id="fallback-message" class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-0">
+        <i class="fa-solid fa-circle-notch fa-spin text-blue-500 text-3xl mb-4" id="loading-spinner"></i>
+        <p class="text-slate-600 font-medium mb-2">正在安全連線至薪酬計算模組...</p>
+        <p class="text-sm text-slate-500">
+            如果畫面長時間沒有顯示，請 
+            <!-- 保留您原本設定的降級備用連結 -->
+            <a href="https://script.google.com/macros/s/AKfycbxG0vS3NgK1HpAP_vD2Bms_XLSu7rwN9p9P59jVsYi7vRxN9WopJnFsuYTynf49cAg/exec" target="_blank" class="text-blue-600 hover:text-blue-700 font-medium underline transition-colors">
+                點此在新分頁開啟
+            </a>。
+        </p>
+    </div>
+
+    <!-- 內嵌 Google Apps Script 應用程式 (放置於上層 z-10) -->
+    <iframe 
+        id="gas-iframe"
+        class="w-full h-full border-none z-10 bg-transparent opacity-0 transition-opacity duration-700"
+        src="https://script.google.com/macros/s/AKfycbxG0vS3NgK1HpAP_vD2Bms_XLSu7rwN9p9P59jVsYi7vRxN9WopJnFsuYTynf49cAg/exec" 
+        title="契約人員薪酬計算機"
+        allowfullscreen>
+    </iframe>
+</div>
+
+<!-- 引入單一職責的 JS 控制腳本 -->
+<script type="module" src="{{ '/payment-calc/js/main.js' | relative_url }}"></script>
