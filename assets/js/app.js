@@ -55,10 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!modal) return;
             
             if (show) {
-                modal.classList.remove('modal-hidden');
+                // 同時移除自訂的 modal-hidden 與 Tailwind 的隱藏屬性
+                modal.classList.remove('modal-hidden', 'opacity-0', 'pointer-events-none');
                 document.body.style.overflow = 'hidden'; // 防止背景捲動
             } else {
-                modal.classList.add('modal-hidden');
+                // 關閉時加回隱藏屬性
+                modal.classList.add('modal-hidden', 'opacity-0', 'pointer-events-none');
                 document.body.style.overflow = ''; // 恢復捲動
             }
         };
