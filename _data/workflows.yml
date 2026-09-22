@@ -1,0 +1,45 @@
+# 第一個工作流區塊：系統重構
+refactor:
+  header:
+    title: "系統重構工作流"
+    description: "循序漸進的數位轉型藍圖，確保醫療人事系統從舊有架構平穩遷移至現代化平台。"
+    button_text: "查看完整設計細節"
+    url: "/refactoring_workflow/"
+  steps:
+    - title: 流程現況盤點
+      icon: fa-magnifying-glass
+      color_theme: blue-600
+      description: 釐清既有行政作業瓶頸，識別自動化需求優先順序。
+
+    - title: 業務模組拆解
+      icon: fa-cubes
+      color_theme: indigo-500
+      description: 將龐雜人事規章拆解為獨立邏輯模組，降低耦合度。
+
+    - title: 自動化邏輯導入
+      icon: fa-robot
+      color_theme: cyan-500
+      description: 導入現代化程式架構與 API，實現跨系統數據即時交換。
+
+    - title: 持續驗證與部署
+      icon: fa-circle-check
+      color_theme: emerald-500
+      description: 透過單元測試與部署，確保核心作業零風險轉型。
+
+# 第二個工作流區塊：新進人員培訓 (這就是你新增的區塊)
+
+# training:
+#   header:
+#     title: "新進人員培訓工作流"
+#     description: "標準化報到流程，協助新進同仁快速融入醫療行政作業環境。"
+#     button_text: "查看培訓教材"
+#     url: "/training_docs/"
+#   steps:
+#     - title: 報到與權限開通
+#       icon: fa-id-card
+#       color_theme: purple-500
+#       description: 完成人事資料建檔與院內各項資訊系統權限申請。
+#     - title: 核心業務交接
+#       icon: fa-handshake
+#       color_theme: orange-500
+#       description: 熟悉單位核心業務與跨部門溝通協調窗口。

@@ -1,36 +1,28 @@
 <section class="bg-white rounded-[2.5rem] p-10 md:p-16 shadow-xl shadow-slate-200/60 border border-slate-100 mb-24">
     <div class="flex flex-col md:flex-row md:items-start justify-between mb-16 gap-8">
         <div class="text-left">
-            <h2 class="text-3xl font-bold mb-4 text-slate-900">系統重構工作流</h2>
-            <p class="text-slate-500 max-w-2xl">循序漸進的數位轉型藍圖，確保醫療人事系統從舊有架構平穩遷移至現代化平台。</p>
+            <!-- 改用 include.data 接收外部傳入的參數 -->
+            <h2 class="text-3xl font-bold mb-4 text-slate-900">{{ include.data.header.title }}</h2>
+            <p class="text-slate-500 max-w-2xl">{{ include.data.header.description }}</p>
         </div>
-        <a href="https://hrms.leno-1.com/refactoring_workflow/"
+        
+        <a href="{{ include.data.header.url | relative_url }}"
            target="_blank"
            class="px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center shadow-lg shadow-slate-200 active:scale-95 shrink-0">
-            查看完整設計細節 <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs"></i>
+            {{ include.data.header.button_text }} <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs"></i>
         </a>
     </div>
 
-    <div class="grid md:grid-cols-4 gap-8 relative z-10">
-        <div class="workflow-step relative text-center">
-            <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20"><i class="fa-solid fa-magnifying-glass text-xl"></i></div>
-            <h4 class="font-bold text-slate-800 mb-2">流程現況盤點</h4>
-            <p class="text-sm text-slate-500 px-4">釐清既有行政作業瓶頸，識別自動化需求優先順序。</p>
+    <div class="flex flex-col md:flex-row gap-8 relative z-10 w-full">
+        <!-- 迴圈改為讀取 include.data.steps -->
+        {% for step in include.data.steps %}
+        <div class="workflow-step relative text-center flex-1">
+            <div class="w-16 h-16 bg-{{ step.color_theme }} text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20">
+                <i class="fa-solid {{ step.icon }} text-xl"></i>
+            </div>
+            <h4 class="font-bold text-slate-800 mb-2">{{ step.title }}</h4>
+            <p class="text-sm text-slate-500 px-4">{{ step.description }}</p>
         </div>
-        <div class="workflow-step relative text-center">
-            <div class="w-16 h-16 bg-indigo-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20"><i class="fa-solid fa-cubes text-xl"></i></div>
-            <h4 class="font-bold text-slate-800 mb-2">業務模組拆解</h4>
-            <p class="text-sm text-slate-500 px-4">將龐雜人事規章拆解為獨立邏輯模組，降低耦合度。</p>
-        </div>
-        <div class="workflow-step relative text-center">
-            <div class="w-16 h-16 bg-cyan-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20"><i class="fa-solid fa-robot text-xl"></i></div>
-            <h4 class="font-bold text-slate-800 mb-2">自動化邏輯導入</h4>
-            <p class="text-sm text-slate-500 px-4">導入現代化程式架構與 API，實現跨系統數據即時交換。</p>
-        </div>
-        <div class="workflow-step relative text-center">
-            <div class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20"><i class="fa-solid fa-circle-check text-xl"></i></div>
-            <h4 class="font-bold text-slate-800 mb-2">持續驗證與部署</h4>
-            <p class="text-sm text-slate-500 px-4">透過單元測試與部署，確保核心作業零風險轉型。</p>
-        </div>
+        {% endfor %}
     </div>
 </section>

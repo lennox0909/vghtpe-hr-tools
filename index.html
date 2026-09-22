@@ -2,9 +2,13 @@
 layout: default
 ---
 
+<!-- 引入 Hero 區塊組件 -->
 {% include hero.html %}
 
+<!-- 主內容區 -->
 <main class="max-w-6xl mx-auto py-16 px-6">
+    
+    <!-- 核心工具列標題與狀態 -->
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
         <div>
             <h2 class="text-3xl font-bold flex items-center mb-2 text-slate-900">
@@ -19,14 +23,19 @@ layout: default
         </div>
     </div>
 
-    <!-- 利用資料驅動渲染工具卡片 -->
+    <!-- 利用資料驅動：自動渲染所有工具卡片 -->
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
         {% for tool in site.data.tools %}
             {% include tool_card.html tool=tool %}
         {% endfor %}
     </div>
 
-    {% include workflow.html %}
+    <!-- 利用資料驅動：自動渲染 workflows.yml 裡的所有工作流區塊 -->
+    {% for workflow in site.data.workflows %}
+        {% include workflow.html data=workflow[1] %}
+    {% endfor %}
+    
 </main>
 
+<!-- 引入聯絡資訊彈窗組件 -->
 {% include modal.html %}
