@@ -76,7 +76,7 @@ async function sendMessage(isContinue = false) {
     
     if (context !== "") {
         // 情況 A：有找到新法規資料 (嚴格限制 AI 不要自己條列選項)
-        promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字（如「休假」、「國旅卡」）且對應多筆資料，請直接回覆：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」(注意：請勿自行條列選項，系統會自動生成按鈕)。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
+        promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字（如「休假」、「國旅卡」）且對應多筆資料，請「只能」回覆這句話：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」，絕對不可以加上任何其他文字、網址連結或 HTML 符號。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
     } else {
         // 情況 B：沒找到新資料 (接續對話或無關問題)
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
@@ -110,10 +110,14 @@ async function sendMessage(isContinue = false) {
             const btnContainer = document.createElement('div');
             btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
 
-            // 判斷 AI 是否在詢問使用者。如果 AI 已經直接回答了，這些按鈕就當作「延伸閱讀」
+            // 判斷 AI 是否在詢問使用者
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
             
-            if (!isAskingToChoose) {
+            if (isAskingToChoose) {
+                // 【強制清理】：直接用標準句子覆蓋，抹除 AI 幻覺產生的假連結與亂碼
+                aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
+            } else {
+                // 如果 AI 是直接回答答案，則顯示延伸閱讀提示
                 const hint = document.createElement('div');
                 hint.className = "text-xs text-slate-400 font-medium mb-1";
                 hint.textContent = "💡 您可能也想了解：";
@@ -122,7 +126,6 @@ async function sendMessage(isContinue = false) {
 
             suggestedQuestions.forEach(opt => {
                 const btn = document.createElement('button');
-                // 主要選項用藍色，延伸閱讀用深色
                 btn.className = isAskingToChoose 
                     ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95"
                     : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95";
