@@ -1,0 +1,30 @@
+/* 自訂捲軸樣式 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* 隱藏預設 textarea 輪廓 */
+textarea:focus { outline: none; }
+
+/* 調整桿的觸控優化 */
+#resizer { touch-action: none; }
+
+/* CodeMirror 編輯器樣式覆寫，使其融入 Tailwind 介面 */
+.CodeMirror {
+    height: 100% !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #374151;
+    background-color: transparent;
+}
+.CodeMirror-gutters {
+    border-right: 1px solid #e5e7eb;
+    background-color: #f8fafc;
+    padding-right: 4px;
+}
+.CodeMirror-linenumber { color: #94a3b8; }
+@media (max-width: 768px) {
+    .CodeMirror { font-size: 0.875rem; }
+}

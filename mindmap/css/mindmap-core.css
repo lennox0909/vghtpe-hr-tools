@@ -1,0 +1,11 @@
+/* 確保 Markmap 連線正確顯示 */
+.markmap-link { fill: none; }
+
+/* 讓節點圓圈更明顯 */
+svg#mindmap .markmap-node circle {
+    cursor: pointer;
+    transition: r 0.2s ease;
+}
+svg#mindmap .markmap-node circle:hover {
+    r: 6px;
+}
