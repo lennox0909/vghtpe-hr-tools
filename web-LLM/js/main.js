@@ -44,7 +44,6 @@ async function loadModel() {
         status = 'ready';
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
         
-        // 專屬自我介紹歡迎詞
         const welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？\n*(💡 點擊左下角麥克風可使用語音輸入)*`;
         appendMessageToDOM('assistant', welcomeText);
     } catch (err) {
@@ -76,14 +75,11 @@ async function sendMessage(isContinue = false) {
     // 動態檢索知識庫
     const context = searchRelevantQA(text);
     
-    // 【動態互動與防幻覺策略】
+    // 防幻覺策略提示詞
     let promptForModel = text;
-    
     if (context !== "") {
-        // 情況 A：有找到新法規資料
         promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字（如「休假」、「國旅卡」）且對應多筆資料，請「不要」直接給出長篇答案。\n2. 請改為列出上述參考資訊裡的「問：」，並詢問使用者：「為您找到以下相關規定，請問您具體想了解哪一項？」\n3. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
     } else {
-        // 情況 B：沒找到新資料 (接續對話或無關問題)
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
@@ -97,7 +93,7 @@ async function sendMessage(isContinue = false) {
         const chunks = await engine.chat.completions.create({
             messages: messageHistory,
             stream: true,
-            temperature: parseFloat(DOM.tempSlider.value), // 建議面板預設 0.1
+            temperature: parseFloat(DOM.tempSlider.value),
             top_p: parseFloat(DOM.topPSlider.value),
         });
 
@@ -107,6 +103,53 @@ async function sendMessage(isContinue = false) {
             aiTextBlock.textContent = fullReply;
             scrollToBottom();
         }
+        
+        // ==========================================
+        // [新增] 氣泡按鈕動態渲染邏輯 (Post-processing)
+        // ==========================================
+        if (fullReply.includes("為您找到以下相關規定")) {
+            const lines = fullReply.split('\n');
+            let cleanTextLines = [];
+            let options = [];
+
+            // 尋找條列式文字 (支援 1. 或 **1.** 格式)
+            lines.forEach(line => {
+                const match = line.match(/^\s*(?:\*\*?)?\d+\.\s*(?:\*\*?)?(.+)/);
+                if (match) {
+                    options.push(match[1].replace(/[*_`]/g, '').trim());
+                } else {
+                    cleanTextLines.push(line);
+                }
+            });
+
+            // 如果有找到選項，將文字替換為互動式按鈕
+            if (options.length > 0) {
+                // 將去掉條列的乾淨文字放回畫面
+                aiTextBlock.textContent = cleanTextLines.join('\n').trim();
+                
+                // 建立 Tailwind 按鈕容器
+                const btnContainer = document.createElement('div');
+                btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
+
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95";
+                    btn.textContent = opt;
+                    btn.onclick = () => {
+                        // 點擊後，自動填入輸入框並觸發送出事件
+                        DOM.chatInput.value = opt;
+                        DOM.chatInput.dispatchEvent(new Event('input')); // 觸發 UI 解鎖更新
+                        DOM.sendBtn.click();
+                    };
+                    btnContainer.appendChild(btn);
+                });
+
+                // 將按鈕群組掛載到聊天氣泡中
+                aiTextBlock.parentElement.appendChild(btnContainer);
+                scrollToBottom();
+            }
+        }
+        // ==========================================
         
         messageHistory.push({ role: 'assistant', content: fullReply });
     } catch (err) {
