@@ -16,35 +16,27 @@ export async function initKnowledgeBase(dataUrl) {
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
-        return "";
+        return { context: "", questions: [] }; // 變更回傳結構
     }
 
-    // 移除常見標點符號，並轉小寫，確保比對不受干擾
     const query = userMessage.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
     
-    if (!query) return "";
+    if (!query) return { context: "", questions: [] };
 
-    // 計算每筆 QA 的關聯分數
     const scoredQA = faqDatabase.map(item => {
         let score = 0;
         const qStr = item.q.toLowerCase();
         const aStr = item.a.toLowerCase();
         
-        // 1. 雙向關鍵字比對 (高權重)
         item.keywords.forEach(keyword => {
             const kw = keyword.toLowerCase();
-            if (query.includes(kw)) {
-                score += 15;
-            } else if (kw.includes(query)) {
-                score += 10;
-            }
+            if (query.includes(kw)) score += 15;
+            else if (kw.includes(query)) score += 10;
         });
 
-        // 2. 問題標題雙向比對
         if (qStr.includes(query)) score += 10;
         if (query.includes(qStr)) score += 10;
 
-        // 3. N-gram (Bigram) 模糊比對 
         if (query.length >= 2) {
             for (let i = 0; i < query.length - 1; i++) {
                 const bigram = query.substring(i, i + 2);
@@ -58,27 +50,28 @@ export function searchRelevantQA(userMessage, topK = 3) {
         return { ...item, score };
     });
 
-    // 過濾出分數大於 2 的結果，依分數降冪排序，取前 TopK 筆
     const relevantResults = scoredQA
         .filter(item => item.score > 2)
         .sort((a, b) => b.score - a.score)
         .slice(0, topK);
 
-    // 在 Console 印出命中結果，方便除錯與觀察分數
     console.log(`🔍 搜尋：「${userMessage}」`);
     if (relevantResults.length === 0) {
         console.log("   -> ❌ 無命中新資料 (可能為接續對話或無關問題)");
-        return ""; // 改為回傳空字串，讓主程式判斷是否為接續對話
+        return { context: "", questions: [] }; 
     }
 
     console.log("   -> ✅ 命中資料：");
     relevantResults.forEach((r, i) => console.log(`      [${i+1}] (分數:${r.score}) ${r.q}`));
 
-    // 組合成最精簡的 Q&A 結構，降低小模型的閱讀負擔
     let context = "";
+    let questions = []; // 用來收集原始問題標題
+    
     relevantResults.forEach((res, idx) => {
         context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}\n\n`;
+        questions.push(res.q); // 收集標題
     });
 
-    return context;
+    // 回傳包含 context (給 LLM 看) 與 questions (給前端做按鈕) 的物件
+    return { context, questions }; 
 }
