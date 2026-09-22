@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
     // 模組 2: Modal 彈窗控制邏輯
-    // 取代原有的全域 window.toggleModal[cite: 2]
     // ==========================================
     const initModals = () => {
         const triggers = document.querySelectorAll('[data-modal-target]');
@@ -57,13 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (show) {
                 modal.classList.remove('modal-hidden');
-                document.body.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden'; // 防止背景捲動
             } else {
                 modal.classList.add('modal-hidden');
-                document.body.style.overflow = '';
+                document.body.style.overflow = ''; // 恢復捲動
             }
         };
 
+        // 綁定開啟按鈕
         triggers.forEach(trigger => {
             trigger.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // 綁定關閉按鈕 (X 按鈕與底部關閉按鈕)
         closeButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -80,15 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // 點擊半透明背景關閉
         overlays.forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                // 確保只點擊到背景才關閉，非內部容器
                 if (e.target === overlay) {
                     toggleModal(overlay.id, false);
                 }
             });
         });
 
+        // 按下 Esc 鍵關閉
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay:not(.modal-hidden)').forEach(modal => {
@@ -98,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // 初始化所有前端行為模組
+    // 啟動模組
     initDropdown();
     initModals();
 });
