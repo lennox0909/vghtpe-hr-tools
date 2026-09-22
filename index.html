@@ -18,8 +18,10 @@ layout: default
             <p class="text-slate-500">快速訪問人事室數位化轉型之核心管理工具</p>
         </div>
         <div class="flex space-x-2">
-            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">系統在線</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">更新於 2026.09.09</span>
+            <!-- 綁定系統運行狀態 -->
+            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ site.data.status.state }}</span>
+            <!-- 綁定最後更新日期 -->
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">更新於 {{ site.data.status.updated_date }}</span>
         </div>
     </div>
 
