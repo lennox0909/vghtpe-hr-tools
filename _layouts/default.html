@@ -6,8 +6,9 @@
     <title>{{ site.title | default: "人事室智慧工具箱 - 臺北榮民總醫院" }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入重構後的樣式[cite: 3] -->
-    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    
+    <!-- 加上 site.baseurl 確保 GitHub Pages 找得到 CSS -->
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
     
@@ -20,7 +21,7 @@
         <p class="text-slate-400 text-[11px] mt-2 uppercase tracking-widest">Designed for Healthcare Excellence</p>
     </footer>
 
-    <!-- 統一的邏輯腳本入口 -->
-    <script src="{{ '/assets/js/app.js' | relative_url }}"></script>
+    <!-- 加上 site.baseurl 確保 GitHub Pages 找得到 JS -->
+    <script src="{{ site.baseurl }}/assets/js/app.js"></script>
 </body>
 </html>
