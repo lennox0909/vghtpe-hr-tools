@@ -1,0 +1,34 @@
+/* 避免 Mermaid 溢出並支援無限放大滾動 */
+.mermaid {
+    overflow: auto;
+    text-align: center;
+}
+.mermaid svg {
+    max-width: none !important;
+    height: auto !important;
+    transform-origin: top center;
+}
+/* 修復 Mermaid 幽靈色塊 (限制在圖表區內) */
+.mermaid svg rect:not([class]):not([id]):not([fill]) {
+    display: none !important;
+}
+/* 預覽區塊內圖片與元素間距優化 */
+.prose pre {
+    padding: 0 !important;
+    background: transparent !important;
+}
+/* 優化圖表連線文字標籤外觀 */
+.edgeLabel span {
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block !important;
+}
+/* 清除空的箭頭標籤所造成的幽靈區塊 */
+.edgeLabel span:empty {
+    display: none !important;
+    padding: 0;
+}
+/* 防止加大的背景被裁切 */
+.edgeLabel foreignObject {
+    overflow: visible !important;
+}
