@@ -7,8 +7,8 @@
 # - value: "gemma-2-9b-it-q4f16_1-MLC"
 #   label: "Gemma 2 9B (高階效能, 約 6GB)"
 
-- value: "gemma-2b-it-q4f16_1-MLC"
-  label: "Gemma 2B (初代輕量, 約 1.8GB)"
+# - value: "gemma-2b-it-q4f16_1-MLC"
+#   label: "Gemma 2B (初代輕量, 約 1.8GB)"
 
 # - value: "gemma-7b-it-q4f16_1-MLC"
 #   label: "Gemma 7B (初代高階, 約 4.3GB)"

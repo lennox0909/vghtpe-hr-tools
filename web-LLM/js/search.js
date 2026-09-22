@@ -43,7 +43,10 @@ export function searchRelevantQA(userMessage, topK = 3) {
         .sort((a, b) => b.score - a.score)
         .slice(0, topK);
 
-    if (relevantResults.length === 0) return "";
+    // 若查無資料，明確告知 LLM 找不到資料，觸發限制條件
+    if (relevantResults.length === 0) {
+        return "\n\n【內部參考資訊】\n無相關資料。請遵守系統設定，告知使用者你不知道答案。";
+    }
 
     // 組合成 Prompt 擴充內容
     let context = "\n\n【內部參考資訊】請依據以下資訊回答使用者的問題：\n";

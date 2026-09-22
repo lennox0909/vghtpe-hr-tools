@@ -12,9 +12,8 @@ let wasInterrupted = false;
 // 1. 初始化語音模組
 const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
 
-// 2. 畫面載入時，初始化人事知識庫
+// 2. 畫面載入時，初始化人事知識庫 (加入預設路徑防呆)
 document.addEventListener('DOMContentLoaded', () => {
-    // 加上預設相對路徑 './data/faq.json' 作為安全防護
     const dataUrl = window.FAQ_DATA_URL || './data/faq.json';
     initKnowledgeBase(dataUrl);
 });
@@ -44,7 +43,9 @@ async function loadModel() {
         });
         status = 'ready';
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
-        const welcomeText = `✅ 已載入模型 **${selectedModel}**，並連結人事知識庫。\n💡 點擊左下角麥克風可語音輸入！`;
+        
+        // 專屬自我介紹歡迎詞
+        const welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？\n*(💡 點擊左下角麥克風可使用語音輸入)*`;
         appendMessageToDOM('assistant', welcomeText);
     } catch (err) {
         status = 'error';
@@ -68,7 +69,9 @@ async function sendMessage(isContinue = false) {
 
     wasInterrupted = false;
     
-    appendMessageToDOM('user', text);
+    if (!isContinue) {
+        appendMessageToDOM('user', text);
+    }
     
     // 動態檢索知識庫 (動態 RAG)
     const context = searchRelevantQA(text);
@@ -110,7 +113,7 @@ async function sendMessage(isContinue = false) {
 }
 
 // ==========================================
-// 5. 事件綁定 (確保按鈕與滑桿正常運作)
+// 5. 事件綁定
 // ==========================================
 
 DOM.loadBtn.addEventListener('click', loadModel);
