@@ -1,0 +1,23 @@
+/* 動態生成的結果項目樣式 */
+.result-item {
+    padding: 1rem 0;
+    border-bottom: 1px dashed #bfdbfe;
+}
+.result-item:last-child {
+    border-bottom: none;
+}
+.result-item-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.result-item-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #15803d; /* Tailwind green-700 */
+    margin: 0.25rem 0;
+}
+.result-item-desc {
+    font-size: 0.875rem;
+    color: #64748b; /* Tailwind slate-500 */
+}

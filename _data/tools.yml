@@ -17,13 +17,6 @@
   color_theme: indigo
   description: 基於 WebGPU 技術，選擇適合您個人電腦的小模型，開啟私人對話吧。
 
-- title: 系統架構圖編輯器
-  url: ./flow-charter/
-  icon: fa-wand-magic-sparkles
-  color_theme: indigo
-  badge: "2026.05.25 微軟發布 VS Code 1.121，更新加入 Mermaid 圖表預覽與本機HTML檔案預覽，所以此工具不再繼續維護。"
-  description: 指定您的流程圖，即時產生系統架構圖！
-
 - title: 台灣辦公日曆與計算機
   url: ./taiwan-holidays/
   icon: fa-regular fa-calendar-days
