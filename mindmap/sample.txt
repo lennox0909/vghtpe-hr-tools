@@ -1,13 +1,40 @@
----
-title: markmap
-markmap:
-  colorFreezeLevel: 3
-  initialExpandLevel: 3
----
+# 歡迎使用心智圖編輯器
+## 什麼是 Markmap？
+- Markmap 是一個可以將 Markdown 語法轉換為心智圖的開源工具
+- 它結合了 markdown 的易讀性與心智圖的視覺化優勢
+
+## 核心特色
+- **即時預覽**：左側編輯，右側立即顯示結果
+- **呈現多種資料格式**
+  - **支援數學公式**：如 $x = {-b \pm \sqrt{b^2-4ac} \over 2a}$<!-- markmap: fold -->
+    - [更多數學公式範例](#?d=gist:af76a4c245b302206b16aec503dbe07b:katex.md)
+    - **strong** ~~del~~ *italic* ==highlight==
+  - `inline code`
+  - [x] checkbox
+  -
+    ```js
+    console.log('hello, JavaScript')
+    ```
+  - 
+    | Products | Price |
+    |-|-|
+    | Apple | 4 |
+    | Banana | 2 |
+
+  - ![圖片](./Taipei_Veterans_General_Hospital_Emblem.svg)
+
+- **多種匯出格式**
+  - Markdown 原始檔
+  - SVG 向量圖
+  - 可互動的 HTML 網頁
+
+## 如何使用？
+1. 在左側編輯區輸入您的想法
+2. 使用縮進 (Tab) 來建立層級結構
 
 
 
-# 臺北榮民總醫院：院長-->副院長(5位)-->主任秘書
+# 臺北榮民總醫院：院長-->副院長(5位)-->主任秘書<!-- markmap: fold -->
 ## 業務單位
 ### 內科部（61）
 1. 胃腸肝膽科
