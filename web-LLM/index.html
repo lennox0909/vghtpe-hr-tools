@@ -54,15 +54,19 @@ title: 北榮人事室AI助理
             <div class="flex-1">
                 <div class="flex justify-between mb-2">
                     <label class="text-xs sm:text-sm font-medium text-slate-300">Temperature (隨機性)</label>
-                    <span id="temp-val" class="text-xs sm:text-sm font-bold text-blue-400">0.6</span>
+                    <!-- 修改 1：將顯示文字改為 0.1 -->
+                    <span id="temp-val" class="text-xs sm:text-sm font-bold text-blue-400">0.1</span>
                 </div>
-                <input type="range" id="temp-slider" min="0" max="2" step="0.1" value="0.6" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                <!-- 修改 2：將 value 改為 0.1 -->
+                <input type="range" id="temp-slider" min="0" max="2" step="0.1" value="0.1" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500">
             </div>
             <div class="flex-1">
                 <div class="flex justify-between mb-2">
                     <label class="text-xs sm:text-sm font-medium text-slate-300">Top P (核取樣)</label>
+                    <!-- 修改 3：若需更改 Top P 預設值，改這裡的文字 (目前維持 0.9) -->
                     <span id="top-p-val" class="text-xs sm:text-sm font-bold text-blue-400">0.9</span>
                 </div>
+                <!-- 修改 4：若需更改 Top P 預設值，改這裡的 value (目前維持 0.9) -->
                 <input type="range" id="top-p-slider" min="0" max="1" step="0.05" value="0.9" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500">
             </div>
         </div>
