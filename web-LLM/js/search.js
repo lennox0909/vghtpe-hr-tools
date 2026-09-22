@@ -16,13 +16,13 @@ export async function initKnowledgeBase(dataUrl) {
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
-        return "無相關資料";
+        return "";
     }
 
     // 移除常見標點符號，並轉小寫，確保比對不受干擾
     const query = userMessage.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
     
-    if (!query) return "無相關資料";
+    if (!query) return "";
 
     // 計算每筆 QA 的關聯分數
     const scoredQA = faqDatabase.map(item => {
@@ -67,8 +67,8 @@ export function searchRelevantQA(userMessage, topK = 3) {
     // 在 Console 印出命中結果，方便除錯與觀察分數
     console.log(`🔍 搜尋：「${userMessage}」`);
     if (relevantResults.length === 0) {
-        console.log("   -> ❌ 無命中資料");
-        return "無相關資料";
+        console.log("   -> ❌ 無命中新資料 (可能為接續對話或無關問題)");
+        return ""; // 改為回傳空字串，讓主程式判斷是否為接續對話
     }
 
     console.log("   -> ✅ 命中資料：");

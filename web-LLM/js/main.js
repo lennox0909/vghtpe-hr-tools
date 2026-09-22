@@ -12,7 +12,7 @@ let wasInterrupted = false;
 // 1. 初始化語音模組
 const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
 
-// 2. 畫面載入時，初始化人事知識庫 (加入預設路徑防呆)
+// 2. 畫面載入時，初始化人事知識庫
 document.addEventListener('DOMContentLoaded', () => {
     const dataUrl = window.FAQ_DATA_URL || './data/faq.json';
     initKnowledgeBase(dataUrl);
@@ -56,7 +56,7 @@ async function loadModel() {
     }
 }
 
-// 4. 傳送訊息與 RAG 邏輯
+// 4. 傳送訊息與動態 RAG 邏輯
 async function sendMessage(isContinue = false) {
     if (speech?.getIsRecording()) speech.recognition.stop();
 
@@ -73,15 +73,18 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
-    // 動態檢索知識庫 (動態 RAG)
+    // 動態檢索知識庫
     const context = searchRelevantQA(text);
     
-    // 【防幻覺三明治結構】：先給規定，再給問題，嚴格限制模型行為
-    let promptForModel = "";
-    if (context.includes("無相關資料")) {
-        promptForModel = `【內部參考資訊】\n無\n\n【使用者問題】\n${text}\n\n請直接回覆：「很抱歉，我目前的知識庫中沒有關於此問題的規定。您可以換個關鍵字搜尋，或是直接撥打分機向人事室專員洽詢。」`;
+    // 【動態互動與防幻覺策略】
+    let promptForModel = text;
+    
+    if (context !== "") {
+        // 情況 A：有找到新法規資料
+        promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字（如「休假」、「國旅卡」）且對應多筆資料，請「不要」直接給出長篇答案。\n2. 請改為列出上述參考資訊裡的「問：」，並詢問使用者：「為您找到以下相關規定，請問您具體想了解哪一項？」\n3. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
     } else {
-        promptForModel = `請嚴格依據以下【內部參考資訊】來回答問題，絕對不可以加入你自己的常識或捏造規定。\n\n【內部參考資訊】\n${context}\n\n【使用者問題】\n${text}`;
+        // 情況 B：沒找到新資料 (接續對話或無關問題)
+        promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
     messageHistory.push({ role: 'user', content: promptForModel });
@@ -94,7 +97,7 @@ async function sendMessage(isContinue = false) {
         const chunks = await engine.chat.completions.create({
             messages: messageHistory,
             stream: true,
-            temperature: parseFloat(DOM.tempSlider.value), // 建議使用者將介面溫度調至 0.1
+            temperature: parseFloat(DOM.tempSlider.value), // 建議面板預設 0.1
             top_p: parseFloat(DOM.topPSlider.value),
         });
 
