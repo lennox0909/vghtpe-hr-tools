@@ -1,38 +1,14 @@
 import { DOM } from './config.js';
+// 引入全域共用的拖曳邏輯
+import { initResizer } from '../../assets/js/shared/resizer.js';
 
-let isResizing = false;
 let isEditorVisible = true;
 
 export function initLayout() {
-    // 綁定調整版面大小邏輯
-    const startResize = () => {
-        isResizing = true;
-        document.body.classList.add('cursor-col-resize');
-    };
+    // 1. 呼叫共用拖曳邏輯，替換原本冗長的 mousedown/mousemove 事件
+    initResizer(DOM.resizer, DOM.editorPane, DOM.mainContainer);
 
-    const doResize = (e) => {
-        if (!isResizing) return;
-        const containerRect = DOM.mainContainer.getBoundingClientRect();
-        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        let newWidthPercent = ((clientX - containerRect.left) / containerRect.width) * 100;
-        if (newWidthPercent > 15 && newWidthPercent < 85) {
-            DOM.editorPane.style.width = `${newWidthPercent}%`;
-        }
-    };
-
-    const stopResize = () => {
-        isResizing = false;
-        document.body.classList.remove('cursor-col-resize');
-    };
-
-    DOM.resizer.addEventListener('mousedown', startResize);
-    document.addEventListener('mousemove', doResize);
-    document.addEventListener('mouseup', stopResize);
-    DOM.resizer.addEventListener('touchstart', startResize, { passive: true });
-    document.addEventListener('touchmove', doResize, { passive: true });
-    document.addEventListener('touchend', stopResize);
-
-    // 綁定編輯器顯示開關
+    // 2. 保留專屬的編輯器顯示開關邏輯[cite: 7]
     DOM.editorToggleBtn.addEventListener('click', () => {
         isEditorVisible = !isEditorVisible;
         if (isEditorVisible) {

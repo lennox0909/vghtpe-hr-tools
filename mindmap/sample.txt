@@ -6,7 +6,7 @@
 ## 核心特色
 - **即時預覽**：左側編輯，右側立即顯示結果
 - **呈現多種資料格式**
-  - **支援數學公式**：如 $x = {-b \pm \sqrt{b^2-4ac} \over 2a}$<!-- markmap: fold -->
+  - **支援數學公式**：如 $x={-b \pm \sqrt{b^2-4ac} \over 2a}$<!-- markmap: fold -->
     - [更多數學公式範例](#?d=gist:af76a4c245b302206b16aec503dbe07b:katex.md)
     - **strong** ~~del~~ *italic* ==highlight==
   - `inline code`

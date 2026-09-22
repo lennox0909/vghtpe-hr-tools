@@ -68,3 +68,30 @@ body {
     transform: scale(0.9);
     opacity: 0;
 }
+
+/* --- 編輯器共用樣式 (DRY) --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+/* 拖曳桿觸控優化 */
+#resizer {
+    touch-action: none;
+}
+/* 隱藏 textarea 預設輪廓 */
+textarea:focus {
+    outline: none;
+}

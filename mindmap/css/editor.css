@@ -1,14 +1,6 @@
-/* 自訂捲軸樣式 */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
 /* 隱藏預設 textarea 輪廓 */
 textarea:focus { outline: none; }
 
-/* 調整桿的觸控優化 */
-#resizer { touch-action: none; }
 
 /* CodeMirror 編輯器樣式覆寫，使其融入 Tailwind 介面 */
 .CodeMirror {

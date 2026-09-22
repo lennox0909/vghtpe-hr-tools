@@ -1,29 +1,9 @@
 import { DOM } from './config.js';
 import { showModal } from './modal.js';
 import { getExportState } from './renderer.js';
+// 引入全域共用的存檔邏輯
+import { saveFile } from '../../assets/js/shared/file.js';
 
-const saveFile = async (blob, suggestedName, description, acceptTypes) => {
-    const fallbackDownload = () => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = suggestedName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-    try {
-        if ('showSaveFilePicker' in window) {
-            const handle = await window.showSaveFilePicker({ suggestedName, types: [{ description, accept: acceptTypes }] });
-            const writable = await handle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-        } else { fallbackDownload(); }
-    } catch (err) {
-        if (err.name !== 'AbortError') fallbackDownload();
-    }
-};
 
 export const initFileIO = (cmEditor, debounceUpdateCallback) => {
     DOM.btnDownloadMd.addEventListener('click', () => {
