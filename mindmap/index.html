@@ -157,6 +157,12 @@ title: 心智圖即時編輯器
         </div>
     </div>
 </div>
+<!-- 宣告正確的檔案路徑給外部 JS 使用 (利用 Jekyll 的 relative_url) -->
+<script>
+    window.MARKMAP_SAMPLE_URL = "{{ '/mindmap/sample.md' | relative_url }}";
+</script>
 
 <!-- 引入外部 JavaScript 邏輯，使用 relative_url 確保路徑正確 -->
 <script type="module" src="{{ '/mindmap/js/main.js' | relative_url }}"></script>
+</body>
+</html>

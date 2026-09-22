@@ -50,8 +50,12 @@ async function initEditor() {
         debounceUpdate(savedContent, true);
     } else {
         try {
-            const response = await fetch('sample.md');
-            if (!response.ok) throw new Error('無法載入 sample.md');
+            // 優先使用由 Jekyll 解析的絕對路徑，若無則降級使用相對路徑
+            const targetUrl = window.MARKMAP_SAMPLE_URL || 'sample.md';
+            const response = await fetch(targetUrl);
+            
+            if (!response.ok) throw new Error(`無法載入 ${targetUrl}`);
+            
             const defaultContent = await response.text();
             cmEditor.setValue(defaultContent);
             debounceUpdate(defaultContent, true);
