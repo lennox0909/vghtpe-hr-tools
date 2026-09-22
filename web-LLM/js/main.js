@@ -75,7 +75,15 @@ async function sendMessage(isContinue = false) {
     
     // 動態檢索知識庫 (動態 RAG)
     const context = searchRelevantQA(text);
-    const promptForModel = text + context;
+    
+    // 【防幻覺三明治結構】：先給規定，再給問題，嚴格限制模型行為
+    let promptForModel = "";
+    if (context.includes("無相關資料")) {
+        promptForModel = `【內部參考資訊】\n無\n\n【使用者問題】\n${text}\n\n請直接回覆：「很抱歉，我目前的知識庫中沒有關於此問題的規定。您可以換個關鍵字搜尋，或是直接撥打分機向人事室專員洽詢。」`;
+    } else {
+        promptForModel = `請嚴格依據以下【內部參考資訊】來回答問題，絕對不可以加入你自己的常識或捏造規定。\n\n【內部參考資訊】\n${context}\n\n【使用者問題】\n${text}`;
+    }
+
     messageHistory.push({ role: 'user', content: promptForModel });
     
     status = 'generating';
@@ -86,7 +94,7 @@ async function sendMessage(isContinue = false) {
         const chunks = await engine.chat.completions.create({
             messages: messageHistory,
             stream: true,
-            temperature: parseFloat(DOM.tempSlider.value),
+            temperature: parseFloat(DOM.tempSlider.value), // 建議使用者將介面溫度調至 0.1
             top_p: parseFloat(DOM.topPSlider.value),
         });
 
