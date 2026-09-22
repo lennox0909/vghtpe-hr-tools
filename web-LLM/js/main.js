@@ -67,18 +67,24 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
-    // 【修改點 1】：接收物件格式的檢索結果
+    // 動態檢索知識庫
     const searchResult = searchRelevantQA(text);
     const context = searchResult.context;
     const suggestedQuestions = searchResult.questions;
+    const isExactMatch = searchResult.isExactMatch;
     
     let promptForModel = text;
     
     if (context !== "") {
-        // 情況 A：有找到新法規資料 (嚴格限制 AI 不要自己條列選項)
-        promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字（如「休假」、「國旅卡」）且對應多筆資料，請「只能」回覆這句話：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」，絕對不可以加上任何其他文字、網址連結或 HTML 符號。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
+        if (isExactMatch) {
+            // 【情況 A：精準命中】強制 AI 直接回答
+            promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n請依據【內部參考資訊】給出精準解答，直接回覆答案，絕對不要詢問使用者想了解哪一項。`;
+        } else {
+            // 【情況 B：模糊搜尋】嚴格限制 AI 只能輸出引導語，防範幻覺
+            promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字且對應多筆資料，請「只能」回覆這句話：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」，絕對不可以加上任何其他文字、網址連結或 HTML 符號。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
+        }
     } else {
-        // 情況 B：沒找到新資料 (接續對話或無關問題)
+        // 【情況 C：無新資料】
         promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
     }
 
@@ -104,20 +110,18 @@ async function sendMessage(isContinue = false) {
         }
         
         // ==========================================
-        // 【修改點 2】：基於原始搜尋資料生成推薦按鈕
+        // UI 後處理：強制覆蓋幻覺文字並生成按鈕
         // ==========================================
         if (suggestedQuestions && suggestedQuestions.length > 0) {
             const btnContainer = document.createElement('div');
             btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
 
-            // 判斷 AI 是否在詢問使用者
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
             
             if (isAskingToChoose) {
-                // 【強制清理】：直接用標準句子覆蓋，抹除 AI 幻覺產生的假連結與亂碼
+                // 強制覆蓋，抹除任何 AI 捏造的 HTML 或網址
                 aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
             } else {
-                // 如果 AI 是直接回答答案，則顯示延伸閱讀提示
                 const hint = document.createElement('div');
                 hint.className = "text-xs text-slate-400 font-medium mb-1";
                 hint.textContent = "💡 您可能也想了解：";
@@ -142,7 +146,6 @@ async function sendMessage(isContinue = false) {
             aiTextBlock.parentElement.appendChild(btnContainer);
             scrollToBottom();
         }
-        // ==========================================
         
         messageHistory.push({ role: 'assistant', content: fullReply });
     } catch (err) {
@@ -159,7 +162,7 @@ async function sendMessage(isContinue = false) {
     }
 }
 
-// 5. 事件綁定 (略) ...
+// 5. 事件綁定
 DOM.loadBtn.addEventListener('click', loadModel);
 DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
 DOM.continueBtn.addEventListener('click', () => sendMessage(true));
