@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.title | default: "人事室智慧工具箱 - 臺北榮民總醫院" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入重構後的樣式[cite: 3] -->
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    
+    {% include navbar.html %}
+    
+    {{ content }}
+    
+    <footer class="py-16 text-center border-t border-slate-200 mt-12 bg-white">
+        <p class="text-slate-500 text-sm font-medium">© 2026 臺北榮民總醫院 人事室</p>
+        <p class="text-slate-400 text-[11px] mt-2 uppercase tracking-widest">Designed for Healthcare Excellence</p>
+    </footer>
+
+    <!-- 統一的邏輯腳本入口 -->
+    <script src="{{ '/assets/js/app.js' | relative_url }}"></script>
+</body>
+</html>

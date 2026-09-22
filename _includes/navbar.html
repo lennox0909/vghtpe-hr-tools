@@ -1,0 +1,38 @@
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 py-3 px-6 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <!-- Logo 區塊 -->
+        <div class="flex items-center space-x-3 group">
+            <div class="bg-blue-600 p-2 rounded-lg group-hover:rotate-12 transition-transform shadow-md shadow-blue-200">
+                <i class="fa-solid fa-hospital-user text-white text-xl"></i>
+            </div>
+            <div>
+                <span class="font-bold text-lg block leading-none text-slate-900 tracking-tight">臺北榮民總醫院 人事室</span>
+                <span class="text-[9px] text-slate-400 font-medium tracking-[0.15em] uppercase mt-1 block">Personnel Office Digital Transformation</span>
+            </div>
+        </div>
+        
+        <!-- 操作區塊 -->
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <button id="nav-dropdown-btn" class="px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-slate-700 text-[11px] font-bold tracking-wider hover:bg-slate-100 hover:text-slate-900 transition-all duration-300 shadow-sm flex items-center space-x-1">
+                    <span>更多資訊</span>
+                    <i id="nav-dropdown-icon" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300"></i>
+                </button>
+                
+                <div id="nav-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 hidden opacity-0 transform scale-95 transition-all duration-200 origin-top-right z-50">
+                    <div class="py-2">
+                        <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">相關資源</div>
+                        <!-- 利用 Liquid 迴圈動態渲染來自 links.yml 的資料 -->
+                        {% for link in site.data.links %}
+                            <a href="{{ link.url }}" target="_blank" class="block px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">{{ link.title }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <button data-modal-target="contact-modal" class="px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-blue-600 text-[11px] font-bold tracking-wider hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm active:scale-95">
+                by Leno Tsai
+            </button>
+        </div>
+    </div>
+</nav>
