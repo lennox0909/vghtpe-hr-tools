@@ -12,31 +12,44 @@ export async function initKnowledgeBase(dataUrl) {
     }
 }
 
-// 模糊檢索演算法 (N-gram 與雙向比對)
+// 模糊檢索演算法 (N-gram 與雙向比對 + 精準命中判斷)
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
-        return { context: "", questions: [] }; // 變更回傳結構
+        return { context: "", questions: [], isExactMatch: false };
     }
 
-    const query = userMessage.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
+    const rawQuery = userMessage.trim();
+    const query = rawQuery.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
     
-    if (!query) return { context: "", questions: [] };
+    if (!query) return { context: "", questions: [], isExactMatch: false };
+
+    let isExactMatch = false;
 
     const scoredQA = faqDatabase.map(item => {
         let score = 0;
         const qStr = item.q.toLowerCase();
         const aStr = item.a.toLowerCase();
+        const cleanQ = item.q.replace(/[?？!！,，.。~～\s]/g, '').toLowerCase();
         
+        // 1. 完全命中判斷 (給予絕對高分 1000，代表使用者點擊了按鈕)
+        if (cleanQ === query || item.q.trim() === rawQuery) {
+            score += 1000;
+            isExactMatch = true;
+        }
+
+        // 2. 雙向關鍵字比對
         item.keywords.forEach(keyword => {
             const kw = keyword.toLowerCase();
             if (query.includes(kw)) score += 15;
             else if (kw.includes(query)) score += 10;
         });
 
+        // 3. 問題標題雙向比對
         if (qStr.includes(query)) score += 10;
         if (query.includes(qStr)) score += 10;
 
+        // 4. Bigram 模糊比對
         if (query.length >= 2) {
             for (let i = 0; i < query.length - 1; i++) {
                 const bigram = query.substring(i, i + 2);
@@ -57,21 +70,30 @@ export function searchRelevantQA(userMessage, topK = 3) {
 
     console.log(`🔍 搜尋：「${userMessage}」`);
     if (relevantResults.length === 0) {
-        console.log("   -> ❌ 無命中新資料 (可能為接續對話或無關問題)");
-        return { context: "", questions: [] }; 
+        console.log("   -> ❌ 無命中新資料");
+        return { context: "", questions: [], isExactMatch: false }; 
     }
 
     console.log("   -> ✅ 命中資料：");
     relevantResults.forEach((r, i) => console.log(`      [${i+1}] (分數:${r.score}) ${r.q}`));
 
     let context = "";
-    let questions = []; // 用來收集原始問題標題
+    let questions = []; 
     
     relevantResults.forEach((res, idx) => {
-        context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}\n\n`;
-        questions.push(res.q); // 收集標題
+        if (isExactMatch) {
+            // 精準命中時，LLM 只需要看第一筆，其餘作為延伸閱讀
+            if (idx === 0) {
+                context += `--- [精準命中資料] ---\n問：${res.q}\n答：${res.a}\n\n`;
+            } else {
+                questions.push(res.q); 
+            }
+        } else {
+            // 模糊比對，餵給 LLM 並產生選項按鈕
+            context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}\n\n`;
+            questions.push(res.q);
+        }
     });
 
-    // 回傳包含 context (給 LLM 看) 與 questions (給前端做按鈕) 的物件
-    return { context, questions }; 
+    return { context, questions, isExactMatch }; 
 }
