@@ -1,7 +1,7 @@
 import { DOM, SYSTEM_PROMPT } from './config.js';
 import { updateUIState, showError, clearMessagesDOM, appendMessageToDOM, scrollToBottom } from './ui.js';
 import { initEngine } from './engine.js';
-import { initKnowledgeBase, searchRelevantQA } from './search.js';
+import { initKnowledgeBase, searchRelevantQA, getExactFAQ } from './search.js';
 
 let engine = null;
 let status = 'idle'; 
@@ -176,7 +176,7 @@ async function sendMessage(isContinue = false) {
         }
         
         // ==========================================
-        // 氣泡按鈕動態渲染 (加入過濾機制)
+        // 氣泡按鈕動態渲染 (加入過濾機制與瞬間解答)
         // ==========================================
         if (suggestedQuestions && suggestedQuestions.length > 0) {
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
@@ -184,11 +184,9 @@ async function sendMessage(isContinue = false) {
             // 【核心邏輯】：決定要顯示哪些按鈕
             let displayQuestions = suggestedQuestions;
             if (!isAskingToChoose) {
-                // 如果是「💡 您可能也想了解」的延伸閱讀，過濾掉已經問過的問題
                 displayQuestions = suggestedQuestions.filter(opt => !askedQuestions.has(opt));
             }
 
-            // 只有在過濾後「還有」按鈕可以顯示時，才建立按鈕區塊
             if (displayQuestions.length > 0) {
                 const btnContainer = document.createElement('div');
                 btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
@@ -209,10 +207,37 @@ async function sendMessage(isContinue = false) {
                         : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
                     
                     btn.textContent = opt;
+                    
+                    // 【修改這裡】：攔截按鈕點擊事件，直接繞過 LLM 渲染解答
                     btn.onclick = () => {
-                        DOM.chatInput.value = opt;
-                        DOM.chatInput.dispatchEvent(new Event('input'));
-                        DOM.sendBtn.click();
+                        const exactMatch = getExactFAQ(opt);
+                        
+                        if (exactMatch) {
+                            // 1. 直接將使用者的問題印在畫面上
+                            appendMessageToDOM('user', opt);
+                            
+                            // 2. 組合完美解答 (包含原本的 type 與 regulation)
+                            let replyText = exactMatch.a;
+                            if (exactMatch.type) replyText += `\n\n📍 案件類別：${exactMatch.type}`;
+                            if (exactMatch.regulation) replyText += `\n📜 法規依據：${exactMatch.regulation}`;
+                            
+                            // 3. 瞬間印出 AI 的答案
+                            appendMessageToDOM('assistant', replyText);
+                            
+                            // 4. 更新歷史對話紀錄與「已問過」清單，確保重整後記憶還在
+                            messageHistory.push({ role: 'user', content: opt });
+                            messageHistory.push({ role: 'assistant', content: replyText });
+                            askedQuestions.add(opt);
+                            
+                            localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
+                            localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
+                            
+                        } else {
+                            // 防呆機制：萬一沒找到對應資料，退回原本交給 LLM 處理的流程
+                            DOM.chatInput.value = opt;
+                            DOM.chatInput.dispatchEvent(new Event('input'));
+                            DOM.sendBtn.click();
+                        }
                     };
                     btnContainer.appendChild(btn);
                 });
@@ -239,6 +264,7 @@ async function sendMessage(isContinue = false) {
     }
 }
 
+// 【新增】清除對話與快取的邏輯
 function clearChatHistory() {
     if (!confirm('確定要清除所有對話紀錄與記憶嗎？')) return;
 

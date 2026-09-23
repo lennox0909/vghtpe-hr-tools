@@ -113,3 +113,8 @@ export function searchRelevantQA(userMessage, topK = 3) {
 
     return { context, questions, isExactMatch }; 
 }
+
+// 提供給氣泡按鈕直接調用，精準抓取對應的 QA 資料
+export function getExactFAQ(question) {
+    return faqDatabase.find(item => item.q === question);
+}
