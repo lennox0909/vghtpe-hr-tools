@@ -12,7 +12,7 @@ export async function initKnowledgeBase(dataUrl) {
     }
 }
 
-// 模糊檢索演算法 (涵蓋 q, a, keywords，並優化容錯門檻)
+// 模糊檢索演算法 (涵蓋 q, a, keywords, regulation, type)
 export function searchRelevantQA(userMessage, topK = 3) {
     if (faqDatabase.length === 0) {
         console.warn("⚠️ 知識庫為空，無法進行檢索");
@@ -31,6 +31,8 @@ export function searchRelevantQA(userMessage, topK = 3) {
         // 加入防呆機制，避免 JSON 欄位遺失導致程式崩潰
         const qStr = (item.q || "").toLowerCase();
         const aStr = (item.a || "").toLowerCase();
+        const regStr = (item.regulation || "").toLowerCase(); 
+        const typeStr = (item.type || "").toLowerCase(); // 【新增】讀取類別欄位
         const cleanQ = qStr.replace(/[?？!！,，.。~～\s]/g, '');
         
         // 1. 精準命中判斷 (代表使用者點選了按鈕)
@@ -43,33 +45,38 @@ export function searchRelevantQA(userMessage, topK = 3) {
         if (item.keywords && Array.isArray(item.keywords)) {
             item.keywords.forEach(keyword => {
                 const kw = keyword.toLowerCase();
-                if (query.includes(kw)) score += 20; // 提高自訂關鍵字權重
+                if (query.includes(kw)) score += 20; 
                 else if (kw.includes(query)) score += 10;
             });
         }
 
-        // 3. 問題 (q) 與 答案 (a) 全文包含比對
+        // 3. 全文包含比對 (涵蓋 q, a, regulation, type)
         if (qStr.includes(query)) score += 15;
         if (query.includes(qStr)) score += 15;
-        if (aStr.includes(query)) score += 10; // 只要答案包含完整字眼，直接給 10 分
+        if (aStr.includes(query)) score += 10; 
+        if (regStr.includes(query)) score += 10; 
+        if (typeStr.includes(query)) score += 10; // 【新增】類別包含關鍵字
 
-        // 4. Bigram 模糊比對容錯機制 (涵蓋 q 與 a)
+        // 4. Bigram 模糊比對容錯機制 (涵蓋 q, a, regulation, type)
         if (query.length >= 2) {
             for (let i = 0; i < query.length - 1; i++) {
                 const bigram = query.substring(i, i + 2);
-                if (qStr.includes(bigram)) score += 5; // 提高權重
-                if (aStr.includes(bigram)) score += 3; // 提高答案模糊比對的權重
+                if (qStr.includes(bigram)) score += 5; 
+                if (aStr.includes(bigram)) score += 3; 
+                if (regStr.includes(bigram)) score += 2; 
+                if (typeStr.includes(bigram)) score += 2; // 【新增】類別模糊比對
             }
         } else if (query.length === 1) {
             if (qStr.includes(query)) score += 3;
             if (aStr.includes(query)) score += 2;
+            if (regStr.includes(query)) score += 1;
+            if (typeStr.includes(query)) score += 1; // 【新增】單字類別比對
         }
 
         return { ...item, score };
     });
 
-    // 【核心修正】：將過濾門檻降為 > 0。
-    // 只要有任何蛛絲馬跡對應到 (分數大於0)，就保留進候選池，再透過 sort 抓出前 3 名。
+    // 將過濾門檻設為 > 0，保留進候選池，再抓出前 3 名。
     const relevantResults = scoredQA
         .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score)
@@ -88,14 +95,18 @@ export function searchRelevantQA(userMessage, topK = 3) {
     let questions = []; 
     
     relevantResults.forEach((res, idx) => {
+        // 【新增】將法規與類別資訊組合給 LLM
+        const regInfo = res.regulation ? `\n法規依據：${res.regulation}` : "";
+        const typeInfo = res.type ? `\n案件類別：${res.type}` : "";
+        
         if (isExactMatch) {
             if (idx === 0) {
-                context += `--- [精準命中資料] ---\n問：${res.q}\n答：${res.a}\n\n`;
+                context += `--- [精準命中資料] ---\n問：${res.q}\n答：${res.a}${typeInfo}${regInfo}\n\n`;
             } else {
                 questions.push(res.q); 
             }
         } else {
-            context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}\n\n`;
+            context += `--- [資料 ${idx + 1}] ---\n問：${res.q}\n答：${res.a}${typeInfo}${regInfo}\n\n`;
             questions.push(res.q);
         }
     });
