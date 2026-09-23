@@ -68,7 +68,8 @@ title: 代碼考古與重構工作流：CaD + DaC 結合
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <!-- Spotify -->
+            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
                 <div class="flex items-center mb-4">
                     <div class="logo-container bg-[#1DB954]/10 mr-3">
                         <img src="https://cdn.simpleicons.org/spotify/1DB954" alt="Spotify Logo" class="logo-img">
@@ -78,8 +79,17 @@ title: 代碼考古與重構工作流：CaD + DaC 結合
                 <p class="text-slate-600 text-sm leading-relaxed flex-grow">
                     Spotify 是「文件即代碼」與「架構視覺化」的先驅。他們透過自動掃描 (CaD) 數千個微服務的依賴關係，並將其定義為可視化的系統圖譜，解決了工程師在龐大舊系統中迷路的問題。
                 </p>
+                <div class="mt-6 pt-4 border-t border-slate-50 flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">資料來源</span>
+                    <a href="https://engineering.atspotify.com/" target="_blank" class="source-link">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Spotify Engineering Blog
+                    </a>
+                </div>
             </div>
-            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+
+            <!-- Netflix -->
+            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
                 <div class="flex items-center mb-4">
                     <div class="logo-container bg-[#E50914]/10 mr-3">
                         <img src="https://cdn.simpleicons.org/netflix/E50914" alt="Netflix Logo" class="logo-img">
@@ -89,6 +99,57 @@ title: 代碼考古與重構工作流：CaD + DaC 結合
                 <p class="text-slate-600 text-sm leading-relaxed flex-grow">
                     Netflix 發展出了一套即時拓撲視覺化思維。他們透過監控流量自動生成調用鏈路圖 (CaD)，讓架構師能一眼看穿哪些舊服務已經過載或應該被廢棄。
                 </p>
+                <div class="mt-6 pt-4 border-t border-slate-50 flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">資料來源</span>
+                    <a href="https://github.com/Netflix/vizceral" target="_blank" class="source-link">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Netflix Vizceral GitHub
+                    </a>
+                    <a href="https://netflixtechblog.com/" target="_blank" class="source-link">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Netflix Tech Blog
+                    </a>
+                </div>
+            </div>
+
+            <!-- Uber -->
+            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+                <div class="flex items-center mb-4">
+                    <div class="logo-container bg-[#000000]/10 mr-3">
+                        <img src="https://cdn.simpleicons.org/uber/000000" alt="Uber Logo" class="logo-img">
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Uber</h3>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed flex-grow">
+                    在將單體應用拆解為微服務的過程中，Uber 大量使用自動依賴分析。他們將程式碼轉化為圖表以識別強耦合模塊，並將重構後的設計定義為文字藍圖 (DaC)。
+                </p>
+                <div class="mt-6 pt-4 border-t border-slate-50 flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">資料來源</span>
+                    <a href="https://www.uber.com/en-TW/blog/engineering/" target="_blank" class="source-link">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Uber Engineering Blog
+                    </a>
+                </div>
+            </div>
+
+            <!-- GitHub -->
+            <div class="enterprise-card bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+                <div class="flex items-center mb-4">
+                    <div class="logo-container bg-[#181717]/10 mr-3">
+                        <img src="https://cdn.simpleicons.org/github/181717" alt="GitHub Logo" class="logo-img">
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">GitHub</h3>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed flex-grow">
+                    GitHub 將「Diagram as Code」原生集成到了 Markdown 預覽中。讓工程師能在提交代碼時，一併審查架構的變更。
+                </p>
+                <div class="mt-6 pt-4 border-t border-slate-50 flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">資料來源</span>
+                    <a href="https://github.blog/developer-skills/github/include-diagrams-markdown-files-mermaid/" target="_blank" class="source-link">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        GitHub Blog: Mermaid in Markdown
+                    </a>
+                </div>
             </div>
         </div>
     </section>
