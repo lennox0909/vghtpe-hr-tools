@@ -1,6 +1,5 @@
 import { DOM, SYSTEM_PROMPT } from './config.js';
 import { updateUIState, showError, clearMessagesDOM, appendMessageToDOM, scrollToBottom } from './ui.js';
-import { initSpeechRecognition } from './speech.js';
 import { initEngine } from './engine.js';
 import { initKnowledgeBase, searchRelevantQA } from './search.js';
 
@@ -10,10 +9,8 @@ let messageHistory = [];
 let wasInterrupted = false;
 
 const CACHE_KEY = 'vghtpe_hr_chat_history';
-const ASKED_CACHE_KEY = 'vghtpe_hr_asked_questions'; // 新增：用於記錄問過的問題
-let askedQuestions = new Set(); // 新增：使用 Set 來確保問題不重複
-
-const speech = initSpeechRecognition((isRec) => updateUIState(status, isRec, wasInterrupted));
+const ASKED_CACHE_KEY = 'vghtpe_hr_asked_questions'; 
+let askedQuestions = new Set(); 
 
 document.addEventListener('DOMContentLoaded', () => {
     const dataUrl = window.FAQ_DATA_URL || './data/faq.json';
@@ -38,7 +35,7 @@ async function loadModel() {
     const selectedModel = DOM.modelSelect.value;
     status = 'loading';
     wasInterrupted = false;
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+    updateUIState(status, false, wasInterrupted);
     
     DOM.errorBanner.classList.add('hidden');
     DOM.emptyState.classList.add('hidden');
@@ -92,7 +89,7 @@ async function loadModel() {
         if (messageHistory.length > 1) {
             welcomeText = `⚡ 模型（**${selectedModel}**）已重新連線，您可以接續先前的對話。`;
         } else {
-            welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？\n*(💡 點擊左下角麥克風可使用語音輸入)*`;
+            welcomeText = `您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）與人事知識庫已連線完畢。\n\n我的回答範圍嚴格限制於人事室發布的 FAQ 規章中。請問今天有什麼我可以協助您的嗎？`;
         }
         
         appendMessageToDOM('assistant', welcomeText);
@@ -102,13 +99,11 @@ async function loadModel() {
         DOM.loadingIndicator.classList.replace('flex', 'hidden');
         showError(`載入失敗：\n${err.message}`);
     } finally {
-        updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+        updateUIState(status, false, wasInterrupted);
     }
 }
 
 async function sendMessage(isContinue = false) {
-    if (speech?.getIsRecording()) speech.recognition.stop();
-
     let text = isContinue ? "請繼續未完成的回覆" : DOM.chatInput.value.trim();
     if (!isContinue) {
         if (!text || status !== 'ready' || !engine) return;
@@ -129,10 +124,10 @@ async function sendMessage(isContinue = false) {
 
     // 將提問存入歷史陣列與「已問清單」中，並同步快取
     messageHistory.push({ role: 'user', content: text });
-    askedQuestions.add(text); // 【新增】紀錄使用者問過的問題
+    askedQuestions.add(text); 
     
     localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
-    localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions])); // 將 Set 轉 Array 存入
+    localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
     
     const searchResult = searchRelevantQA(text);
     const context = searchResult.context;
@@ -154,7 +149,7 @@ async function sendMessage(isContinue = false) {
     currentMessages[currentMessages.length - 1] = { role: 'user', content: promptForModel };
     
     status = 'generating';
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+    updateUIState(status, false, wasInterrupted);
     const aiTextBlock = appendMessageToDOM('assistant', "");
 
     try {
@@ -232,26 +227,24 @@ async function sendMessage(isContinue = false) {
         }
     } finally {
         status = 'ready';
-        updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+        updateUIState(status, false, wasInterrupted);
     }
 }
 
-// 事件綁定 (維持不變)
+// 事件綁定
 DOM.loadBtn.addEventListener('click', loadModel);
 DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
 DOM.continueBtn.addEventListener('click', () => sendMessage(true));
 DOM.settingsBtn.addEventListener('click', () => DOM.settingsPanel.classList.toggle('hidden'));
 DOM.tempSlider.addEventListener('input', (e) => DOM.tempVal.textContent = e.target.value);
 DOM.topPSlider.addEventListener('input', (e) => DOM.topPVal.textContent = e.target.value);
-DOM.micBtn.addEventListener('click', () => {
-    if (status === 'loading' || status === 'generating') return;
-    speech?.getIsRecording() ? speech.recognition.stop() : speech.recognition.start();
-});
+
 DOM.chatInput.addEventListener('input', function() {
-    updateUIState(status, speech?.getIsRecording(), wasInterrupted);
+    updateUIState(status, false, wasInterrupted);
     this.style.height = '48px';
     this.style.height = Math.min(this.scrollHeight, 200) + 'px';
 });
+
 let enterCount = 0;
 DOM.chatInput.addEventListener('keydown', (e) => {
     if (status !== 'ready') return;

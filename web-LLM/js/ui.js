@@ -18,7 +18,6 @@ export function updateUIState(status, isRecording, wasInterrupted) {
     DOM.loadBtn.disabled = isBusy;
     DOM.tempSlider.disabled = isBusy;
     DOM.topPSlider.disabled = isBusy;
-    DOM.micBtn.disabled = isBusy;
     
     if (status === 'loading') {
         DOM.loadBtnText.textContent = "載入中";
@@ -30,7 +29,7 @@ export function updateUIState(status, isRecording, wasInterrupted) {
 
     DOM.continueWrapper.classList.toggle('hidden', !(wasInterrupted && status === 'ready'));
 
-    DOM.chatInput.disabled = !(status === 'ready' || status === 'idle') && !isRecording;
+    DOM.chatInput.disabled = !(status === 'ready' || status === 'idle');
     
     if (status === 'generating') {
         DOM.sendBtn.disabled = false;
@@ -46,11 +45,9 @@ export function updateUIState(status, isRecording, wasInterrupted) {
         DOM.sendIconStop.classList.add('hidden');
         DOM.sendIconDefault.classList.remove('hidden');
         
-        if (!isRecording) {
-            if (status === 'idle') DOM.chatInput.placeholder = "請先載入模型...";
-            else if (status === 'loading') DOM.chatInput.placeholder = "模型載入中...";
-            else DOM.chatInput.placeholder = "輸入訊息... (連按四下 Enter 送出)";
-        }
+        if (status === 'idle') DOM.chatInput.placeholder = "請先載入模型...";
+        else if (status === 'loading') DOM.chatInput.placeholder = "模型載入中...";
+        else DOM.chatInput.placeholder = "輸入訊息... (連按四下 Enter 送出)";
     }
 }
 

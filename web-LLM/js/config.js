@@ -16,7 +16,6 @@ export const DOM = {
     emptyState: document.getElementById('empty-state'),
     loadingIndicator: document.getElementById('loading-indicator'),
     progressText: document.getElementById('progress-text'),
-    micBtn: document.getElementById('mic-btn'),
     chatInput: document.getElementById('chat-input'),
     sendBtn: document.getElementById('send-btn'),
     sendIconDefault: document.getElementById('send-icon-default'),
