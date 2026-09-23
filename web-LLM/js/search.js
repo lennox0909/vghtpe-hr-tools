@@ -54,7 +54,7 @@ export function searchRelevantQA(userMessage, topK = 3) {
         if (qStr.includes(query)) score += 15;
         if (query.includes(qStr)) score += 15;
         if (aStr.includes(query)) score += 10; 
-        if (regStr.includes(query)) score += 10; 
+        if (regStr.includes(query)) score += 20; 
         if (typeStr.includes(query)) score += 10; // 【新增】類別包含關鍵字
 
         // 4. Bigram 模糊比對容錯機制 (涵蓋 q, a, regulation, type)
