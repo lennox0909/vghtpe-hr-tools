@@ -1,5 +1,6 @@
 export const DOM = {
     modelSelect: document.getElementById('model-select'),
+    clearBtn: document.getElementById('clear-btn'),
     settingsBtn: document.getElementById('settings-btn'),
     settingsPanel: document.getElementById('settings-panel'),
     tempSlider: document.getElementById('temp-slider'),

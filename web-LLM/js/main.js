@@ -239,8 +239,36 @@ async function sendMessage(isContinue = false) {
     }
 }
 
+function clearChatHistory() {
+    if (!confirm('確定要清除所有對話紀錄與記憶嗎？')) return;
+
+    // 1. 清除 LocalStorage
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(ASKED_CACHE_KEY);
+
+    // 2. 重置變數
+    messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
+    askedQuestions.clear();
+
+    // 3. 清理對話畫面
+    clearMessagesDOM();
+
+    // 4. 根據狀態顯示適當的畫面
+    if (status === 'ready') {
+        // 若模型還醒著，直接顯示重置後的歡迎詞
+        const selectedModel = DOM.modelSelect.value;
+        const welcomeText = `對話記憶已清除 🗑️\n\n您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）已準備就緒。請問今天有什麼我可以協助您的嗎？`;
+        appendMessageToDOM('assistant', welcomeText);
+        scrollToBottom();
+    } else {
+        // 若模型尚未載入，顯示初始空狀態畫面
+        DOM.emptyState.classList.remove('hidden');
+    }
+}
+
 // 事件綁定
 DOM.loadBtn.addEventListener('click', loadModel);
+DOM.clearBtn.addEventListener('click', clearChatHistory);
 DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
 DOM.continueBtn.addEventListener('click', () => sendMessage(true));
 DOM.settingsBtn.addEventListener('click', () => DOM.settingsPanel.classList.toggle('hidden'));

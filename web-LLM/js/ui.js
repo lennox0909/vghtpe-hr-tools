@@ -15,6 +15,7 @@ export function updateUIState(status, isRecording, wasInterrupted) {
     const isBusy = status === 'loading' || status === 'generating';
     
     DOM.modelSelect.disabled = isBusy;
+    DOM.clearBtn.disabled = isBusy;
     DOM.loadBtn.disabled = isBusy;
     DOM.tempSlider.disabled = isBusy;
     DOM.topPSlider.disabled = isBusy;
