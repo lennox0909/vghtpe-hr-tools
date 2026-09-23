@@ -1,0 +1,66 @@
+/* 互動卡片樣式 */
+.flow-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.flow-card.active {
+    border-color: #4f46e5;
+    background-color: #f5f3ff;
+    transform: scale(1.02);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* 企業實踐卡片 */
+.enterprise-card {
+    border-left: 4px solid transparent;
+    transition: border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.enterprise-card:hover {
+    border-left-color: #9333ea;
+}
+
+/* 步驟數字樣式 */
+.step-number {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+/* SVG 動畫箭頭路徑 */
+.arrow-path {
+    stroke-dasharray: 10;
+    animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: -1000; }
+}
+
+/* 互動式節點節點（SVG） */
+.interactive-node {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.interactive-node:hover, .interactive-node:active {
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+}
+
+/* 視覺化切換按鈕高亮狀態 */
+.example-toggle-btn.active {
+    background-color: white;
+    color: #4f46e5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 隱藏捲軸但保持功能 */
+.no-scrollbar::-webkit-scrollbar { 
+    display: none; 
+}
+.no-scrollbar { 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+}
