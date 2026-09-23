@@ -13,6 +13,12 @@
         
         <!-- 操作區塊 -->
         <div class="flex items-center space-x-3">
+            
+            <!-- 強制重新整理按鈕 (Cache Busting) -->
+            <button onclick="window.location.search = '?v=' + Date.now();" title="重新整理 (清除瀏覽器快取)" class="w-7 h-7 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all duration-300 shadow-sm active:scale-95">
+                <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+            </button>
+
             <div class="relative">
                 <button id="nav-dropdown-btn" class="px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-slate-700 text-[11px] font-bold tracking-wider hover:bg-slate-100 hover:text-slate-900 transition-all duration-300 shadow-sm flex items-center space-x-1">
                     <span>更多資訊</span>
