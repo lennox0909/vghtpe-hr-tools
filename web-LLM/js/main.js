@@ -20,6 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initKnowledgeBase(dataUrl);
 });
 
+// 動態翻譯 Web-LLM 的英文進度提示
+function translateProgress(text) {
+    if (!text) return "";
+    let t = text;
+    t = t.replace(/Fetching param cache/g, "正在下載模型參數");
+    t = t.replace(/fetched/g, "已下載");
+    t = t.replace(/completed/g, "進度");
+    t = t.replace(/secs elapsed/g, "秒");
+    t = t.replace(/It can take a while when we first visit this page to populate the cache\. Later refreshes will become faster\./g, "初次載入模型時需要時間建立快取，未來重新整理頁面時載入速度將會大幅提升。");
+    t = t.replace(/Loading model from cache/g, "正在從快取載入模型");
+    t = t.replace(/Finish loading/g, "載入完成");
+    return t;
+}
+
 async function loadModel() {
     const selectedModel = DOM.modelSelect.value;
     status = 'loading';
@@ -68,7 +82,7 @@ async function loadModel() {
 
     try {
         engine = await initEngine(selectedModel, (report) => {
-            DOM.progressText.textContent = report.text;
+            DOM.progressText.textContent = translateProgress(report.text);
             scrollToBottom();
         });
         status = 'ready';
