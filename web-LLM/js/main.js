@@ -13,7 +13,15 @@ const ASKED_CACHE_KEY = 'vghtpe_hr_asked_questions';
 let askedQuestions = new Set(); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const dataUrl = window.FAQ_DATA_URL || './data/faq.json';
+    // 1. 抓取目前網頁網址列上的 ?v= 參數
+    const urlParams = new URLSearchParams(window.location.search);
+    // 若網址沒有參數，則給予預設值 (例如 '1.0')，讓平時能正常使用快取
+    const version = urlParams.get('v') || '1.0'; 
+    
+    // 2. 取得基礎網址，並將參數附加到請求網址後方
+    const baseUrl = window.FAQ_DATA_URL || './data/faq.json';
+    const dataUrl = `${baseUrl}?v=${version}`;
+    
     initKnowledgeBase(dataUrl);
 });
 
