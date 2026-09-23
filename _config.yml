@@ -2,5 +2,7 @@ title: 人事室智慧工具箱 - 臺北榮民總醫院
 description: 人事室智慧工具箱
 theme: minima 
 
+url: "https://hrms.leno-1.com"
 # 請將下方改為你的 GitHub 儲存庫名稱 (注意最前面一定要有斜線)
-baseurl: "/vghtpe-hr-tools"
+# baseurl: "/vghtpe-hr-tools"
+baseurl: ""
