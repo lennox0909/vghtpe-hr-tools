@@ -4,7 +4,7 @@ refactor:
     title: "系統重構工作流"
     description: "循序漸進的數位轉型藍圖，確保人事系統從舊有架構平穩遷移至現代化平台。"
     button_text: "查看完整設計細節"
-    url: "/refactoring_workflow/"
+    url: "/system-refactoring/"
   steps:
     - title: 流程現況盤點
       icon: fa-magnifying-glass
