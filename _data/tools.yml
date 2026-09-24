@@ -1,8 +1,8 @@
-- title: 本機端「北榮人事室 AI 助理」
+- title: 「北榮人事室AI助理」本地AI
   url: ./web-LLM/
   icon: fa-regular fa-comment-dots
   color_theme: indigo
-  description: 基於 WebGPU 技術，選擇適合您個人電腦的小模型，開啟私人對話吧。
+  description: 基於 WebGPU 技術，建議使用桌機/筆電的Chrome瀏覽器。
 
 - title: 圖表即時編輯器
   url: ./diagram/
