@@ -1,11 +1,9 @@
 <div align="center">
 
-# 台北榮民總醫院 人事室工具箱
+# TVGH HR Tools
 Feb 2026, `Leno` `Bing-Shi` `Tsai`
 
-
-
-## 以 `Jekyll` 部屬，最佳化網頁`效能`與`管理`
+## based on `Jekyll`
 
 </div>
 
@@ -30,41 +28,41 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
 
 ## 🔧 Under the Hood
 
-- by `SRP`、`CARP` and `DRY`
+- by principles `SRP`、`CARP` and `DRY`
 
 ```text
 .
 ├── index.html                  # Main Page (driven by `_data`)
 │
-├── _config.yml                 # Jekyll Setting (baseurl, title, url etc.)
+├── _config.yml                 # 🌐 Jekyll Setting (baseurl, title, url etc.)
 ├── .github/
 │   └── workflows/
-│       └── jekyll-gh-pages.yml # Script (Jekyll CI/CD pipeline with GH Pages)
+│       └── jekyll-gh-pages.yml # 🌐 Script (Jekyll CI/CD pipeline with GH Pages)
 │
 ├── assets/                     # 🌐 global static (`DRY`)
 │   ├── css/
 │   │   └── style.css           # global style (Tailwind, scroll, drag...)
 │   └── js/
-│       ├── app.js              # w/ Navbar & Main Page
-│       └── shared/             # Shared JS Core
-│           ├── file.js         # Shared IO (File System Access API etc.)
+│       ├── app.js              # w Navbar & Main Page
+│       └── shared/             # shared JS Core
+│           ├── file.js         # shared IO (File System Access API etc.)
 │           ├── resizer.js      # Touch Screnn Support
 │           └── theme.js        # Dark/Light Swith
 │
-├── _data/                      # Data Layer
+├── _data/                      # 🌐 Data Layer
 │   ├── links.yml               # External links
 │   ├── status.yml              # System status
 │   ├── tools.yml               # Tool Card Modal
 │   └── workflows.yml           # Workflow Modal
 │
-├── _includes/                  # Module (`CARP`)
+├── _includes/                  # 🌐 Module (`CARP`)
 │   ├── hero.html               # Main Banner
 │   ├── modal.html              # Contact Info
 │   ├── navbar.html             # Top/Bottom Banner Module
-│   ├── tool_card.html          # Tool Card Module (負責接收 tools.yml 的單筆資料)
-│   └── workflow.html           # 單一工作流視圖 (負責接收 workflows.yml 的單筆資料)
+│   ├── tool_card.html          # Tool Card Module (w tools.yml)
+│   └── workflow.html           # Workflow Module (w workflows.yml 的單筆資料)
 │
-└── _layouts/                   # 🖼️ 佈局層
-    └── default.html            # 全站共用大外框 (定義 <head>、插入 Navbar、Footer 與共用 scripts)
+└── _layouts/                   # 🌐 global shared layout
+    └── default.html
 ```
 
