@@ -16,6 +16,7 @@ $$\text{加班費總額 } W_{\text{OT}} = W_h \times \left( \frac{4}{3} \sum_{i=
 \alpha_{m1} & \alpha_{m2} & \cdots & \alpha_{mn}
 \end{pmatrix}
 \quad \text{where } \sum_{j=1}^{n} \alpha_{ij} = 1
+```
 
 ## 1. 流程圖 (Flowchart)
 ```mermaid
