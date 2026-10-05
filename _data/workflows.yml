@@ -1,30 +1,58 @@
 # 工作流區塊：AI智慧小幫手
-auto-service:
+# auto-service:
+#   header:
+#     title: "人事室AI智慧小幫手"
+#     description: "透過【地端(可離線使用)】AI或自動化系統，提供全天候院內、院外即時諮詢。"
+#     button_text: "查看使用方式與設計細節"
+#     url: "/auto-reply/"
+#   steps:
+#     - title: 使用開源小模型
+#       icon: fa-magnifying-glass
+#       color_theme: blue-600
+#       description: 使用 Google Gemma2，藉由 WebGPU 技術，讓文書桌機/筆電順跑 AI 助理。
+
+#     - title: 打包人事室 FAQ 資料
+#       icon: fa-magnifying-glass
+#       color_theme: blue-600
+#       description: 當您連線時，瀏覽器會下載最新版的 FAQ 資料，最新訊息不落人後。
+
+#     - title: 語料比對演算法
+#       icon: fa-magnifying-glass
+#       color_theme: blue-600
+#       description: 減輕 LLM 語言模型負擔，防止 LLM 幻覺。
+
+#     - title: 減少 Token / 算力需求
+#       icon: fa-magnifying-glass
+#       color_theme: blue-600
+#       description: 小語言模型回答速度慢，沒關係！使用推薦演算法，引導使用者快速得到答覆。
+
+# 工作流區塊：AI智慧小幫手
+auto-reply:
   header:
-    title: "人事室AI智慧小幫手"
-    description: "透過【地端(可離線使用)】AI或自動化系統，提供全天候院內、院外即時諮詢。"
-    button_text: "查看使用方式與設計細節"
+    title: "人事室 AI 智慧小幫手"
+    description: "結合 WebGPU 瀏覽器地端推論與 RAG 檢索技術，兼顧資料隱私與離線可用性，提供全天候即時人事規章諮詢。"
+    button_text: "立即體驗 AI 智慧小幫手"
     url: "/auto-reply/"
   steps:
-    - title: 使用開源小模型
-      icon: fa-magnifying-glass
+    - title: WebGPU 地端輕量模型
+      icon: fa-microchip
       color_theme: blue-600
-      description: 使用 Google Gemma2，藉由 WebGPU 技術，讓文書桌機/筆電順跑 AI 助理。
+      description: 採用 Google Gemma 2 等開源輕量模型，透過 WebGPU 硬體加速，一般行政文書電腦即可流暢執行本地推論。
 
-    - title: 打包人事室 FAQ 資料
-      icon: fa-magnifying-glass
-      color_theme: blue-600
-      description: 當您連線時，瀏覽器會下載最新版的 FAQ 資料，最新訊息不落人後。
+    - title: 人事 FAQ 知識庫同步
+      icon: fa-database
+      color_theme: indigo-500
+      description: 連線時自動載入並快取最新版人事室 FAQ 結構化語料，支援離線瀏覽，確保法規與福利資訊即時準確。
 
-    - title: 語料比對演算法
-      icon: fa-magnifying-glass
-      color_theme: blue-600
-      description: 減輕 LLM 語言模型負擔，防止 LLM 幻覺。
+    - title: 精準語料檢索 (RAG)
+      icon: fa-magnifying-glass-chart
+      color_theme: cyan-500
+      description: 先透過本地端關鍵字與語意權重演算法鎖定高關聯條文，再交由模型總結，大幅減輕運算負擔並杜絕 AI 幻覺。
 
-    - title: 減少 Token / 算力需求
-      icon: fa-magnifying-glass
-      color_theme: blue-600
-      description: 小語言模型回答速度慢，沒關係！使用推薦演算法，引導使用者快速得到答覆。
+    - title: 智慧推薦與秒級秒回
+      icon: fa-bolt
+      color_theme: emerald-500
+      description: 內建動態問題推薦機制，無須等待模型長篇生成即可一鍵點選常見問答，極小化 Token 消耗並加速查詢體驗。
 
 # 工作流區塊：系統重構
 refactor:
