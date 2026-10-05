@@ -5,13 +5,14 @@ import { DOM } from './config.js';
 import { handleSvgDownload, handlePngDownload } from './image-export.js';
 
 /**
- * 保護並預先渲染 Markdown 內的 LaTeX 公式，並修復 CommonMark 中文全形標點粗體失效問題
+ * 保護並預先渲染 Markdown 內的 LaTeX 公式、行內程式碼與中文全形標點粗體
  */
 function preprocessLatexInMarkdown(markdown) {
     const mathStore = [];
     const codeBlockStore = [];
+    const inlineCodeStore = [];
 
-    // 1. 先將 ``` 程式碼區塊暫存保護起來（支援 \r\n 與 \n）
+    // 1. 先將 ``` 多行程式碼區塊暫存保護起來（支援 \r\n 與 \n）
     let text = markdown.replace(/```([^\r\n]*)\r?\n([\s\S]*?)```/g, (match, lang, content) => {
         const normalizedLang = (lang || '').trim().toLowerCase();
         if (normalizedLang === 'math' || normalizedLang === 'latex') {
@@ -34,15 +35,17 @@ function preprocessLatexInMarkdown(markdown) {
         return codeId;
     });
 
-    // 2. 保護並直接轉換行內程式碼 `...`（去掉前後反引號，避免與 HTML 標籤衝突）
+    // 2. 擷取行內程式碼 `...` 並徹底剝除前後反引號 `，轉為獨立 Token
     text = text.replace(/`([^`\r\n]+)`/g, (_, codeContent) => {
-        const codeId = `CODEBLOCK${codeBlockStore.length}END`;
+        const inlineId = `INLINECODE${inlineCodeStore.length}END`;
         const escaped = codeContent
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-        codeBlockStore.push(`<code>${escaped}</code>`);
-        return codeId;
+        inlineCodeStore.push(
+            `<code class="px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-mono text-[0.875em] font-semibold before:content-none after:content-none">${escaped}</code>`
+        );
+        return inlineId;
     });
 
     // 3. 處理區塊公式 $$...$$ 與 \[...\]
@@ -83,12 +86,12 @@ function preprocessLatexInMarkdown(markdown) {
     });
 
     // 5. 修復 CommonMark 在中文全形括號/引號（如 ）**、」**）與公式混合時無法解析 **粗體** 的問題
-    text = text.replace(/\*\*(?!\s)([^\*\r\n]+?)(?<!\s)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/\*\*(?!\s)([^\*\r\n]+?)(?<!\s)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>');
 
-    // 6. 還原程式碼區塊與行內程式碼給 Marked 處理
+    // 6. 還原多行 ``` 程式碼區塊給 Marked 處理
     text = text.replace(/CODEBLOCK(\d+)END/g, (_, idx) => codeBlockStore[Number(idx)]);
 
-    return { processedText: text, mathStore };
+    return { processedText: text, mathStore, inlineCodeStore };
 }
 
 export async function renderContent() {
