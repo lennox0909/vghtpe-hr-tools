@@ -13,44 +13,31 @@
     display: none !important;
 }
 
-/* 確保 Mermaid subgraph (.cluster) 在淺色與深色模式皆有明確邊界與底色 */
+/* 確保 Mermaid subgraph (.cluster) 顯示，但不強制覆蓋使用者在 Mermaid 內寫的 style fill */
 .mermaid svg g.cluster > rect,
 .mermaid svg g.cluster > path {
     display: block !important;
-    fill: #f4f6f8;
-    stroke: #94a3b8;
-    stroke-width: 1.5px;
     rx: 6px;
     ry: 6px;
 }
 
-.dark .mermaid svg g.cluster > rect,
-.dark .mermaid svg g.cluster > path {
-    display: block !important;
-    fill: rgba(30, 41, 59, 0.75);
-    stroke: #64748b;
-    stroke-width: 1.5px;
-    rx: 6px;
-    ry: 6px;
+/* 防止 subgraph 標題文字因字體寬度差異被 foreignObject 裁切 (解決 Cont... 截斷問題) */
+.mermaid svg g.cluster .cluster-label foreignObject {
+    overflow: visible !important;
+}
+.mermaid svg g.cluster .cluster-label foreignObject > div {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    max-width: none !important;
 }
 
-/* 確保 subgraph 標題文字在淺色與深色模式下皆清晰醒目 */
-.mermaid svg g.cluster .cluster-label span,
-.mermaid svg g.cluster .cluster-label div,
-.mermaid svg g.cluster .cluster-label p,
-.mermaid svg g.cluster .nodeLabel {
+/* 若使用者在 Mermaid 語法中用 style 為 subgraph 指定了淺色底色 (style 含 fill)，文字保持深色以維持對比 */
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label span,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label div,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label p,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .nodeLabel {
     color: #0f172a !important;
     fill: #0f172a !important;
-    font-weight: 700 !important;
-}
-
-.dark .mermaid svg g.cluster .cluster-label span,
-.dark .mermaid svg g.cluster .cluster-label div,
-.dark .mermaid svg g.cluster .cluster-label p,
-.dark .mermaid svg g.cluster .nodeLabel {
-    color: #f8fafc !important;
-    fill: #f8fafc !important;
-    font-weight: 700 !important;
 }
 
 /* 預覽區塊內圖片與元素間距優化 */
