@@ -35,7 +35,7 @@ function preprocessLatexInMarkdown(markdown) {
         return codeId;
     });
 
-    // 2. 擷取行內程式碼 `...` 並徹底剝除前後反引號 `，轉為獨立 Token
+    // 2. 擷取行內程式碼 `...` 並剝除前後反引號 `，轉為獨立 Token
     text = text.replace(/`([^`\r\n]+)`/g, (_, codeContent) => {
         const inlineId = `INLINECODE${inlineCodeStore.length}END`;
         const escaped = codeContent
@@ -94,6 +94,57 @@ function preprocessLatexInMarkdown(markdown) {
     return { processedText: text, mathStore, inlineCodeStore };
 }
 
+/**
+ * 修正 Mermaid subgraph (.cluster) 標題截斷問題與自訂淺色背景下的文字對比度
+ */
+function fixMermaidSubgraphs(svgEl) {
+    if (!svgEl) return;
+    const clusters = svgEl.querySelectorAll('g.cluster');
+    clusters.forEach((cluster) => {
+        // 1. 確保 subgraph 背景框顯示
+        const bgShape = cluster.querySelector('rect, path');
+        let hasCustomLightBg = false;
+        if (bgShape) {
+            bgShape.style.setProperty('display', 'block', 'important');
+            const styleAttr = (bgShape.getAttribute('style') || '').toLowerCase();
+            const fillAttr = (bgShape.getAttribute('fill') || '').toLowerCase();
+            // 檢查使用者是否在 Mermaid 語法中用 style 指定了淺色底色 (如 #f9f9f9, #fff, #f5f5f5 等)
+            if (styleAttr.includes('fill:') || (fillAttr && fillAttr !== 'none')) {
+                hasCustomLightBg = true;
+            }
+        }
+
+        // 2. 解決 subgraph 標題 foreignObject 寬度不足導致結尾被切掉 (如 Cont...) 的問題
+        const fo = cluster.querySelector('.cluster-label foreignObject');
+        if (fo) {
+            fo.style.overflow = 'visible';
+            const origWidth = parseFloat(fo.getAttribute('width') || '0');
+            const origX = parseFloat(fo.getAttribute('x') || '0');
+            if (origWidth > 0) {
+                const extraWidth = 80; // 左右各放寬 40px 避免粗體或中英混排被切邊
+                fo.setAttribute('width', String(origWidth + extraWidth));
+                fo.setAttribute('x', String(origX - extraWidth / 2));
+            }
+            const innerDiv = fo.querySelector('div');
+            if (innerDiv) {
+                innerDiv.style.whiteSpace = 'nowrap';
+                innerDiv.style.maxWidth = 'none';
+                innerDiv.style.overflow = 'visible';
+            }
+        }
+
+        // 3. 若 subgraph 有指定淺色背景，強制將標題文字設為深色，避免深色模式下「白底白字」看不見
+        if (hasCustomLightBg) {
+            const labelEls = cluster.querySelectorAll('.cluster-label span, .cluster-label div, .cluster-label p, .nodeLabel, text');
+            labelEls.forEach((el) => {
+                el.style.setProperty('color', '#0f172a', 'important');
+                el.style.setProperty('fill', '#0f172a', 'important');
+                el.style.setProperty('font-weight', '700', 'important');
+            });
+        }
+    });
+}
+
 export async function renderContent() {
     const rawText = DOM.editor.value || '';
     
@@ -103,9 +154,10 @@ export async function renderContent() {
         .replace(/[\u2028\u2029]/g, '<br/>');
     
     if (window.marked) {
-        const { processedText, mathStore } = preprocessLatexInMarkdown(sanitizedText);
+        const { processedText, mathStore, inlineCodeStore } = preprocessLatexInMarkdown(sanitizedText);
         let html = marked.parse(processedText);
-        // 將渲染好的 KaTeX HTML 還原回對應位置
+        // 關鍵：同時將 INLINECODE 與 MATHTOKEN 還原回對應的 HTML！
+        html = html.replace(/INLINECODE(\d+)END/g, (_, idx) => inlineCodeStore[Number(idx)]);
         html = html.replace(/MATHTOKEN(\d+)END/g, (_, idx) => mathStore[Number(idx)]);
         DOM.preview.innerHTML = html;
 
@@ -144,6 +196,9 @@ export async function renderContent() {
         try {
             const { svg } = await mermaid.render(id, sourceText);
             mDiv.innerHTML = svg;
+
+            // 修正 subgraph 標題寬度截斷與深色模式對比度
+            fixMermaidSubgraphs(mDiv.querySelector('svg'));
 
             // 針對 Mermaid 圖表節點內的 LaTeX 公式補渲染
             renderMathInElement(mDiv, {
@@ -209,7 +264,7 @@ function attachToolbar(container, svg, index) {
     bDlPng.className = flexBtnBase;
     bDlPng.title = "下載 PNG 圖片";
     bDlPng.innerHTML = '<span class="text-[10px] font-bold">PNG</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-    bDlPng.onclick = () => handleSvgDownload(svg, index);
+    bDlPng.onclick = () => handlePngDownload(svg, index);
 
     toolbar.append(bIn, bOut, bDlSvg, bDlPng);
     container.appendChild(toolbar);
