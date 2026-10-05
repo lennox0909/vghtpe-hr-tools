@@ -12,6 +12,11 @@ title: 心智圖即時編輯器
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
 
+<!-- 引入 KaTeX 實現 LaTeX 數學公式與排版渲染 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
 <!-- 引入外部 CSS 樣式表 (假設放在 mindmap 目錄下) -->
 <link rel="stylesheet" href="{{ '/mindmap/css/editor.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/mindmap/css/mindmap-core.css' | relative_url }}">

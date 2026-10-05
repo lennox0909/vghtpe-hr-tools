@@ -8,6 +8,11 @@ title: 圖表即時編輯器
 <script src="{{ '/diagram/js/tailwind.config.js' | relative_url }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+<!-- 引入 KaTeX 實現 LaTeX 數學公式與排版渲染 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
 <!-- 引入模組化 CSS -->
 <link rel="stylesheet" href="{{ '/diagram/css/scrollbar.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/diagram/css/animations.css' | relative_url }}">
@@ -41,7 +46,7 @@ title: 圖表即時編輯器
     </div>
     
     <div class="flex items-center gap-2 md:gap-4">
-        <span class="text-xs text-slate-400 hidden lg:block">支援 Markdown 與 20+ Mermaid 圖表</span>
+        <span class="text-xs text-slate-400 hidden lg:block">支援 Markdown、LaTeX 公式與 20+ Mermaid 圖表</span>
         <div id="save-status" class="text-xs text-emerald-500 font-medium opacity-0 transition-opacity">已自動儲存</div>
     </div>
 </div>

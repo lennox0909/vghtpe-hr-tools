@@ -1,16 +1,66 @@
 import { isDarkMode } from './theme.js';
 import { showToast, triggerDownload, requestModalInput } from './utils.js';
 
-export async function handleSvgDownload(svg, index) {
-    const clonedSvg = svg.cloneNode(true);
+/**
+ * 擷取頁面上已載入的 KaTeX CSS 規則，供 SVG/PNG 匯出時內嵌使用
+ */
+function getKatexCssText() {
+    let cssText = '';
+    for (const sheet of document.styleSheets) {
+        try {
+            if (sheet.href && sheet.href.includes('katex')) {
+                for (const rule of sheet.cssRules) {
+                    // 略過外部相對路徑字型宣告，避免 Canvas 跨域污染 (Tainted Canvas)
+                    if (rule.type !== CSSRule.FONT_FACE_RULE) {
+                        cssText += rule.cssText + '\n';
+                    }
+                }
+            }
+        } catch (e) {
+            // 忽略跨域樣式表讀取限制
+        }
+    }
+    return cssText;
+}
+
+/**
+ * 為匯出的 SVG 注入字型與 KaTeX 排版樣式，並修正 XHTML 相容性
+ */
+function prepareSvgForExport(clonedSvg) {
     clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    
-    // 強制寫入系統無襯線字體，解決中文亂碼
+
+    const hasMath = clonedSvg.querySelector('.katex, math');
     const styleElement = document.createElement('style');
-    styleElement.textContent = '* { font-family: sans-serif !important; }';
+
+    // 避免 !important 覆蓋掉 KaTeX 數學符號專用字型
+    let baseCss = `
+        svg *:not(.katex):not(.katex *):not(math):not(math *) {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif !important;
+        }
+        .katex { font-family: KaTeX_Main, "Times New Roman", serif !important; }
+        .katex-mathml { display: none !important; }
+    `;
+
+    if (hasMath) {
+        baseCss += '\n' + getKatexCssText();
+    }
+
+    styleElement.textContent = baseCss;
     clonedSvg.insertBefore(styleElement, clonedSvg.firstChild);
 
-    const svgData = new XMLSerializer().serializeToString(clonedSvg);
+    // 序列化並修正 HTML 標籤為合法 XML 自閉合格式，防止繪製 PNG 時失敗
+    let svgData = new XMLSerializer().serializeToString(clonedSvg);
+    svgData = svgData
+        .replace(/<br\s*>/gi, '<br/>')
+        .replace(/<hr\s*>/gi, '<hr/>')
+        .replace(/&nbsp;/g, '&#160;');
+
+    return svgData;
+}
+
+export async function handleSvgDownload(svg, index) {
+    const clonedSvg = svg.cloneNode(true);
+    const svgData = prepareSvgForExport(clonedSvg);
     const content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\r\n' + svgData;
     const suggestedName = `vghtpe-chart-${index + 1}.svg`;
     const mimeType = 'image/svg+xml;charset=utf-8';
@@ -54,15 +104,7 @@ export async function handlePngDownload(svg, index) {
         clonedSvg.setAttribute('viewBox', `${clonedSvg.viewBox.baseVal.x - padding} ${clonedSvg.viewBox.baseVal.y - padding} ${clonedSvg.viewBox.baseVal.width + padding * 2} ${clonedSvg.viewBox.baseVal.height + padding * 2}`);
     }
 
-    if (!clonedSvg.getAttribute('xmlns')) {
-        clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    }
-
-    const styleElement = document.createElement('style');
-    styleElement.textContent = '* { font-family: sans-serif !important; }';
-    clonedSvg.insertBefore(styleElement, clonedSvg.firstChild);
-
-    const svgData = new XMLSerializer().serializeToString(clonedSvg);
+    const svgData = prepareSvgForExport(clonedSvg);
     const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
 
     const img = new Image();

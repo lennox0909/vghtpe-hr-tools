@@ -2,17 +2,102 @@ import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.mi
 import { DOM } from './config.js';
 import { handleSvgDownload, handlePngDownload } from './image-export.js';
 
+/**
+ * 保護並預先渲染 Markdown 內的 LaTeX 公式，避免被 Marked.js 破壞 _ 或 * 等符號
+ */
+function preprocessLatexInMarkdown(markdown) {
+    if (!window.katex) return { processedText: markdown, mathStore: [] };
+
+    const mathStore = [];
+    const codeBlockStore = [];
+
+    // 1. 先將 ``` 程式碼區塊暫存保護起來（除了 ```math 與 ```latex 區塊）
+    let text = markdown.replace(/```([\w-]*)\n([\s\S]*?)```/g, (match, lang, content) => {
+        const normalizedLang = (lang || '').trim().toLowerCase();
+        if (normalizedLang === 'math' || normalizedLang === 'latex') {
+            const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+            try {
+                mathStore.push(
+                    `<div class="my-4 overflow-x-auto py-2 text-center">${window.katex.renderToString(content.trim(), {
+                        displayMode: true,
+                        throwOnError: false,
+                        strict: false
+                    })}</div>`
+                );
+            } catch (e) {
+                mathStore.push(match);
+            }
+            return id;
+        }
+        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
+        codeBlockStore.push(match);
+        return codeId;
+    });
+
+    // 2. 保護行內程式碼 `...`
+    text = text.replace(/`[^`\n]+`/g, (match) => {
+        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
+        codeBlockStore.push(match);
+        return codeId;
+    });
+
+    // 3. 處理區塊公式 $$...$$ 與 \[...\]
+    text = text.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g, (match, g1, g2) => {
+        const expr = (g1 || g2 || '').trim();
+        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        try {
+            mathStore.push(
+                `<div class="my-4 overflow-x-auto py-1 text-center">${window.katex.renderToString(expr, {
+                    displayMode: true,
+                    throwOnError: false,
+                    strict: false
+                })}</div>`
+            );
+        } catch (e) {
+            mathStore.push(match);
+        }
+        return id;
+    });
+
+    // 4. 處理行內公式 $...$ 與 \(...\) （排除單純金額如 $100, $200）
+    text = text.replace(/(?<!\\)\$([^\$\n]+?)(?<!\\)\$|\\\(([\s\S]+?)\\\)/g, (match, g1, g2) => {
+        const expr = (g1 || g2 || '').trim();
+        if (!expr) return match;
+        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        try {
+            mathStore.push(
+                window.katex.renderToString(expr, {
+                    displayMode: false,
+                    throwOnError: false,
+                    strict: false
+                })
+            );
+        } catch (e) {
+            mathStore.push(match);
+        }
+        return id;
+    });
+
+    // 5. 還原程式碼區塊給 Marked 處理
+    text = text.replace(/@@CODE_BLOCK_(\d+)@@/g, (_, idx) => codeBlockStore[Number(idx)]);
+
+    return { processedText: text, mathStore };
+}
+
 export async function renderContent() {
     const rawText = DOM.editor.value || '';
     
-    // 預先過濾導致崩潰的不見字元
-    // 將不中斷空白轉換為普通空白，將特殊的行/段落分隔符強制轉為 Mermaid 換行標籤
+    // 預先過濾導致崩潰的不可見字元
     const sanitizedText = rawText
         .replace(/\u00A0/g, ' ')
         .replace(/[\u2028\u2029]/g, '<br/>');
     
     if (window.marked) {
-       DOM.preview.innerHTML = marked.parse(sanitizedText);
+        const { processedText, mathStore } = preprocessLatexInMarkdown(sanitizedText);
+        let html = marked.parse(processedText);
+        // 將渲染好的 KaTeX HTML 還原回對應位置
+        html = html.replace(/@@MATH_TOKEN_(\d+)@@/g, (_, idx) => mathStore[Number(idx)]);
+        DOM.preview.innerHTML = html;
     } else {
         DOM.preview.innerHTML = "<p class='text-red-500'>Marked.js 尚未載入完成。</p>";
         return;
@@ -37,6 +122,20 @@ export async function renderContent() {
             // 單獨渲染以捕捉錯誤
             const { svg } = await mermaid.render(id, sourceText);
             mDiv.innerHTML = svg;
+
+            // 支援 Mermaid 圖表節點內的 LaTeX 公式補渲染
+            if (typeof window.renderMathInElement === 'function') {
+                window.renderMathInElement(mDiv, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false,
+                    strict: false
+                });
+            }
         } catch (err) {
             mDiv.innerHTML = `<div class="p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono text-left overflow-auto break-all border border-red-200 dark:border-red-800">
                 <strong class="block mb-1 text-sm">圖表語法解析錯誤：</strong>
