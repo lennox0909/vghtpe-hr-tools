@@ -5,18 +5,18 @@ import { DOM } from './config.js';
 import { handleSvgDownload, handlePngDownload } from './image-export.js';
 
 /**
- * 保護並預先渲染 Markdown 內的 LaTeX 公式，避免被 Marked.js 破壞 _ 或 \\ 等符號
- * 同時相容 \r\n 與 \n 換行格式
+ * 保護並預先渲染 Markdown 內的 LaTeX 公式、行內程式碼與中文全形標點粗體
  */
 function preprocessLatexInMarkdown(markdown) {
     const mathStore = [];
     const codeBlockStore = [];
+    const inlineCodeStore = [];
 
-    // 1. 先將 ``` 程式碼區塊暫存保護起來（支援 \r\n 與 \n）
+    // 1. 先將 ``` 多行程式碼區塊暫存保護起來（支援 \r\n 與 \n）
     let text = markdown.replace(/```([^\r\n]*)\r?\n([\s\S]*?)```/g, (match, lang, content) => {
         const normalizedLang = (lang || '').trim().toLowerCase();
         if (normalizedLang === 'math' || normalizedLang === 'latex') {
-            const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+            const id = `MATHTOKEN${mathStore.length}END`;
             try {
                 mathStore.push(
                     `<div class="my-4 overflow-x-auto py-2 text-center">${katex.renderToString(content.trim(), {
@@ -30,22 +30,28 @@ function preprocessLatexInMarkdown(markdown) {
             }
             return id;
         }
-        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
+        const codeId = `CODEBLOCK${codeBlockStore.length}END`;
         codeBlockStore.push(match);
         return codeId;
     });
 
-    // 2. 保護行內程式碼 `...`
-    text = text.replace(/`[^`\r\n]+`/g, (match) => {
-        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
-        codeBlockStore.push(match);
-        return codeId;
+    // 2. 擷取行內程式碼 `...` 並徹底剝除前後反引號 `，轉為獨立 Token
+    text = text.replace(/`([^`\r\n]+)`/g, (_, codeContent) => {
+        const inlineId = `INLINECODE${inlineCodeStore.length}END`;
+        const escaped = codeContent
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        inlineCodeStore.push(
+            `<code class="px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-mono text-[0.875em] font-semibold before:content-none after:content-none">${escaped}</code>`
+        );
+        return inlineId;
     });
 
     // 3. 處理區塊公式 $$...$$ 與 \[...\]
     text = text.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g, (match, g1, g2) => {
         const expr = (g1 || g2 || '').trim();
-        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        const id = `MATHTOKEN${mathStore.length}END`;
         try {
             mathStore.push(
                 `<div class="my-4 overflow-x-auto py-1 text-center">${katex.renderToString(expr, {
@@ -64,7 +70,7 @@ function preprocessLatexInMarkdown(markdown) {
     text = text.replace(/(?<!\\)\$([^\$\r\n]+?)(?<!\\)\$|\\\(([\s\S]+?)\\\)/g, (match, g1, g2) => {
         const expr = (g1 || g2 || '').trim();
         if (!expr) return match;
-        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        const id = `MATHTOKEN${mathStore.length}END`;
         try {
             mathStore.push(
                 katex.renderToString(expr, {
@@ -79,10 +85,13 @@ function preprocessLatexInMarkdown(markdown) {
         return id;
     });
 
-    // 5. 還原程式碼區塊給 Marked 處理
-    text = text.replace(/@@CODE_BLOCK_(\d+)@@/g, (_, idx) => codeBlockStore[Number(idx)]);
+    // 5. 修復 CommonMark 在中文全形括號/引號（如 ）**、」**）與公式混合時無法解析 **粗體** 的問題
+    text = text.replace(/\*\*(?!\s)([^\*\r\n]+?)(?<!\s)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>');
 
-    return { processedText: text, mathStore };
+    // 6. 還原多行 ``` 程式碼區塊給 Marked 處理
+    text = text.replace(/CODEBLOCK(\d+)END/g, (_, idx) => codeBlockStore[Number(idx)]);
+
+    return { processedText: text, mathStore, inlineCodeStore };
 }
 
 export async function renderContent() {
@@ -97,7 +106,7 @@ export async function renderContent() {
         const { processedText, mathStore } = preprocessLatexInMarkdown(sanitizedText);
         let html = marked.parse(processedText);
         // 將渲染好的 KaTeX HTML 還原回對應位置
-        html = html.replace(/@@MATH_TOKEN_(\d+)@@/g, (_, idx) => mathStore[Number(idx)]);
+        html = html.replace(/MATHTOKEN(\d+)END/g, (_, idx) => mathStore[Number(idx)]);
         DOM.preview.innerHTML = html;
 
         // 保險機制：若還有 code.language-latex 或 code.language-math 區塊則直接轉換
@@ -200,7 +209,7 @@ function attachToolbar(container, svg, index) {
     bDlPng.className = flexBtnBase;
     bDlPng.title = "下載 PNG 圖片";
     bDlPng.innerHTML = '<span class="text-[10px] font-bold">PNG</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-    bDlPng.onclick = () => handlePngDownload(svg, index);
+    bDlPng.onclick = () => handleSvgDownload(svg, index);
 
     toolbar.append(bIn, bOut, bDlSvg, bDlPng);
     container.appendChild(toolbar);
