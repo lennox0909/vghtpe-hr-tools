@@ -34,10 +34,14 @@ function preprocessLatexInMarkdown(markdown) {
         return codeId;
     });
 
-    // 2. 保護行內程式碼 `...`
-    text = text.replace(/`[^`\r\n]+`/g, (match) => {
+    // 2. 保護並直接轉換行內程式碼 `...`（去掉前後反引號，避免與 HTML 標籤衝突）
+    text = text.replace(/`([^`\r\n]+)`/g, (_, codeContent) => {
         const codeId = `CODEBLOCK${codeBlockStore.length}END`;
-        codeBlockStore.push(match);
+        const escaped = codeContent
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        codeBlockStore.push(`<code>${escaped}</code>`);
         return codeId;
     });
 

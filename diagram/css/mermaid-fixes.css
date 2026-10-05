@@ -33,7 +33,16 @@
     overflow: visible !important;
 }
 
-/* 為行內程式碼加上 GitHub 風格圓角灰底與邊框 */
+/* 強制移除 Tailwind prose 動態注入在 code 前後的 ` 反引號 */
+.prose code::before,
+.prose code::after,
+#preview code::before,
+#preview code::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* 為行內程式碼加上圓角灰紫底與邊框 */
 .prose :not(pre) > code {
     background-color: rgba(99, 102, 241, 0.1);
     color: #4f46e5;
