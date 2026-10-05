@@ -1,7 +1,22 @@
-# 歡迎使用 VGHTPE-HR Markdown & Mermaid
+# 歡迎使用 VGHTPE-HR Markdown, LaTeX & Mermaid
 
-這是一個即時編輯器，可以將您的 Markdown 內容與 Mermaid 圖表程式碼轉換為視覺化的畫面。
-以下完整收錄了 Mermaid 官方內建支援的 **20 種各式圖表範例**：
+這是一個即時編輯器，可以將您的 Markdown 內容、**LaTeX 數學公式**與 **Mermaid 圖表程式碼**轉換為視覺化的畫面。
+
+## 0. LaTeX 數學公式與科學排版 (KaTeX)
+
+支援標準行內公式（例如：平日每小時工資額為 $W_h = \frac{\text{月薪}}{240}$、歐拉公式 $e^{i\pi} + 1 = 0$），以及獨立區塊公式與矩陣排版：
+
+$$\text{加班費總額 } W_{\text{OT}} = W_h \times \left( \frac{4}{3} \sum_{i=1}^{2} h_i + \frac{5}{3} \sum_{j=3}^{H} h_j \right)$$
+
+```latex
+\mathbf{T}_{\text{shift}} = \begin{pmatrix}
+\alpha_{11} & \alpha_{12} & \cdots & \alpha_{1n} \\
+\alpha_{21} & \alpha_{22} & \cdots & \alpha_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+\alpha_{m1} & \alpha_{m2} & \cdots & \alpha_{mn}
+\end{pmatrix}
+\quad \text{where } \sum_{j=1}^{n} \alpha_{ij} = 1
+```
 
 ## 1. 流程圖 (Flowchart)
 ```mermaid

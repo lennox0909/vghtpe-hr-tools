@@ -1,18 +1,118 @@
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
+import renderMathInElement from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.mjs';
 import { DOM } from './config.js';
 import { handleSvgDownload, handlePngDownload } from './image-export.js';
+
+/**
+ * 保護並預先渲染 Markdown 內的 LaTeX 公式，避免被 Marked.js 破壞 _ 或 \\ 等符號
+ * 同時相容 \r\n 與 \n 換行格式
+ */
+function preprocessLatexInMarkdown(markdown) {
+    const mathStore = [];
+    const codeBlockStore = [];
+
+    // 1. 先將 ``` 程式碼區塊暫存保護起來（支援 \r\n 與 \n）
+    let text = markdown.replace(/```([^\r\n]*)\r?\n([\s\S]*?)```/g, (match, lang, content) => {
+        const normalizedLang = (lang || '').trim().toLowerCase();
+        if (normalizedLang === 'math' || normalizedLang === 'latex') {
+            const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+            try {
+                mathStore.push(
+                    `<div class="my-4 overflow-x-auto py-2 text-center">${katex.renderToString(content.trim(), {
+                        displayMode: true,
+                        throwOnError: false,
+                        strict: false
+                    })}</div>`
+                );
+            } catch (e) {
+                mathStore.push(match);
+            }
+            return id;
+        }
+        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
+        codeBlockStore.push(match);
+        return codeId;
+    });
+
+    // 2. 保護行內程式碼 `...`
+    text = text.replace(/`[^`\r\n]+`/g, (match) => {
+        const codeId = `@@CODE_BLOCK_${codeBlockStore.length}@@`;
+        codeBlockStore.push(match);
+        return codeId;
+    });
+
+    // 3. 處理區塊公式 $$...$$ 與 \[...\]
+    text = text.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g, (match, g1, g2) => {
+        const expr = (g1 || g2 || '').trim();
+        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        try {
+            mathStore.push(
+                `<div class="my-4 overflow-x-auto py-1 text-center">${katex.renderToString(expr, {
+                    displayMode: true,
+                    throwOnError: false,
+                    strict: false
+                })}</div>`
+            );
+        } catch (e) {
+            mathStore.push(match);
+        }
+        return id;
+    });
+
+    // 4. 處理行內公式 $...$ 與 \(...\)
+    text = text.replace(/(?<!\\)\$([^\$\r\n]+?)(?<!\\)\$|\\\(([\s\S]+?)\\\)/g, (match, g1, g2) => {
+        const expr = (g1 || g2 || '').trim();
+        if (!expr) return match;
+        const id = `@@MATH_TOKEN_${mathStore.length}@@`;
+        try {
+            mathStore.push(
+                katex.renderToString(expr, {
+                    displayMode: false,
+                    throwOnError: false,
+                    strict: false
+                })
+            );
+        } catch (e) {
+            mathStore.push(match);
+        }
+        return id;
+    });
+
+    // 5. 還原程式碼區塊給 Marked 處理
+    text = text.replace(/@@CODE_BLOCK_(\d+)@@/g, (_, idx) => codeBlockStore[Number(idx)]);
+
+    return { processedText: text, mathStore };
+}
 
 export async function renderContent() {
     const rawText = DOM.editor.value || '';
     
-    // 預先過濾導致崩潰的不見字元
-    // 將不中斷空白轉換為普通空白，將特殊的行/段落分隔符強制轉為 Mermaid 換行標籤
+    // 預先過濾導致崩潰的不可見字元
     const sanitizedText = rawText
         .replace(/\u00A0/g, ' ')
         .replace(/[\u2028\u2029]/g, '<br/>');
     
     if (window.marked) {
-       DOM.preview.innerHTML = marked.parse(sanitizedText);
+        const { processedText, mathStore } = preprocessLatexInMarkdown(sanitizedText);
+        let html = marked.parse(processedText);
+        // 將渲染好的 KaTeX HTML 還原回對應位置
+        html = html.replace(/@@MATH_TOKEN_(\d+)@@/g, (_, idx) => mathStore[Number(idx)]);
+        DOM.preview.innerHTML = html;
+
+        // 保險機制：若還有 code.language-latex 或 code.language-math 區塊則直接轉換
+        const mathCodeBlocks = DOM.preview.querySelectorAll('code.language-latex, code.language-math');
+        mathCodeBlocks.forEach((block) => {
+            const pre = block.parentElement;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'my-4 overflow-x-auto py-2 text-center';
+            wrapper.innerHTML = katex.renderToString(block.textContent.trim(), {
+                displayMode: true,
+                throwOnError: false,
+                strict: false
+            });
+            pre.replaceWith(wrapper);
+        });
     } else {
         DOM.preview.innerHTML = "<p class='text-red-500'>Marked.js 尚未載入完成。</p>";
         return;
@@ -30,13 +130,23 @@ export async function renderContent() {
         mDiv.id = id;
         
         let sourceText = block.textContent;
-        // 強制將 不中斷空白(\u00A0)、全形空白(\u3000)、零寬字元(\u200B) 全部替換成標準半形空白
         sourceText = sourceText.replace(/[\u00A0\u3000\u200B]/g, ' ');
         
         try {
-            // 單獨渲染以捕捉錯誤
             const { svg } = await mermaid.render(id, sourceText);
             mDiv.innerHTML = svg;
+
+            // 針對 Mermaid 圖表節點內的 LaTeX 公式補渲染
+            renderMathInElement(mDiv, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false,
+                strict: false
+            });
         } catch (err) {
             mDiv.innerHTML = `<div class="p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono text-left overflow-auto break-all border border-red-200 dark:border-red-800">
                 <strong class="block mb-1 text-sm">圖表語法解析錯誤：</strong>

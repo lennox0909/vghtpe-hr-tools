@@ -14,6 +14,29 @@ let isFitted = false;
 let prevTransform = null;
 let viewStateTimeout;
 
+/**
+ * 針對心智圖 SVG 內的 foreignObject 節點執行 KaTeX 公式渲染補全
+ */
+const renderLatexInMindmap = () => {
+    if (!DOM.svgEl || typeof window.renderMathInElement !== 'function') return;
+    const nodes = DOM.svgEl.querySelectorAll('foreignObject div');
+    nodes.forEach((node) => {
+        // 若節點內仍含有未轉換的 $ 或 \( 語法，觸發 auto-render
+        if (node.textContent && (node.textContent.includes('$') || node.textContent.includes('\\(') || node.textContent.includes('\\['))) {
+            window.renderMathInElement(node, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false,
+                strict: false
+            });
+        }
+    });
+};
+
 export const getExportState = () => {
     const getFoldedPaths = (node, path = "0", folded = []) => {
         if (node?.payload?.fold === 1) folded.push(path);
@@ -46,7 +69,12 @@ export const updateMindmap = async (markdown, isInitialLoad = false) => {
 
         const { styles, scripts } = transformer.getUsedAssets(features);
         if (styles) loadCSS(styles);
-        if (scripts) await loadJS(scripts, { getMarkmap: () => window.markmap });
+        if (scripts) {
+            await loadJS(scripts, {
+                getMarkmap: () => window.markmap,
+                get extra() { return { katex: window.katex }; }
+            });
+        }
 
         const optionsRaw = frontmatter?.markmap || {};
         const uiExpand = parseInt(DOM.selExpand.value, 10);
@@ -90,6 +118,7 @@ export const updateMindmap = async (markdown, isInitialLoad = false) => {
         if (!mm) {
             currentOptionsStr = optionsStr;
             mm = Markmap.create(DOM.svgEl, finalOptions, root);
+            renderLatexInMindmap();
             if (isInitialLoad && savedViewState?.transform) {
                 const t = savedViewState.transform;
                 const d3Transform = window.d3.zoomIdentity.translate(t.x, t.y).scale(t.k);
@@ -107,12 +136,14 @@ export const updateMindmap = async (markdown, isInitialLoad = false) => {
             mm.destroy();
             DOM.svgEl.innerHTML = '';
             mm = Markmap.create(DOM.svgEl, finalOptions, root);
+            renderLatexInMindmap();
             mm.fit();
             isFitted = true;
             DOM.fitText.innerText = '恢復視角';
             prevTransform = null;
         } else {
-            mm.setData(root);
+            await mm.setData(root);
+            renderLatexInMindmap();
         }
     } catch (error) { console.error("渲染錯誤:", error); }
 };
@@ -140,7 +171,10 @@ export const zoomMindmap = (scale) => {
     debounceSaveViewState();
 };
 
-DOM.svgEl.addEventListener('click', debounceSaveViewState);
+DOM.svgEl.addEventListener('click', () => {
+    setTimeout(renderLatexInMindmap, 50);
+    debounceSaveViewState();
+});
 const resetFit = () => { if (isFitted) { isFitted = false; DOM.fitText.innerText = '適應螢幕'; } debounceSaveViewState(); };
 DOM.svgEl.addEventListener('mousedown', resetFit);
 DOM.svgEl.addEventListener('wheel', resetFit);
