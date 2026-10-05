@@ -8,10 +8,51 @@
     height: auto !important;
     transform-origin: top center;
 }
-/* 修復 Mermaid 幽靈色塊 (限制在圖表區內) */
-.mermaid svg rect:not([class]):not([id]):not([fill]) {
+/* 修復 Mermaid 幽靈色塊 (排除 cluster / subgraph 避免把子圖邊框與底色隱藏) */
+.mermaid svg rect:not([class]):not([id]):not([fill]):not([style]):not(.cluster rect):not(.clusters rect) {
     display: none !important;
 }
+
+/* 確保 Mermaid subgraph (.cluster) 在淺色與深色模式皆有明確邊界與底色 */
+.mermaid svg g.cluster > rect,
+.mermaid svg g.cluster > path {
+    display: block !important;
+    fill: #f4f6f8;
+    stroke: #94a3b8;
+    stroke-width: 1.5px;
+    rx: 6px;
+    ry: 6px;
+}
+
+.dark .mermaid svg g.cluster > rect,
+.dark .mermaid svg g.cluster > path {
+    display: block !important;
+    fill: rgba(30, 41, 59, 0.75);
+    stroke: #64748b;
+    stroke-width: 1.5px;
+    rx: 6px;
+    ry: 6px;
+}
+
+/* 確保 subgraph 標題文字在淺色與深色模式下皆清晰醒目 */
+.mermaid svg g.cluster .cluster-label span,
+.mermaid svg g.cluster .cluster-label div,
+.mermaid svg g.cluster .cluster-label p,
+.mermaid svg g.cluster .nodeLabel {
+    color: #0f172a !important;
+    fill: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+.dark .mermaid svg g.cluster .cluster-label span,
+.dark .mermaid svg g.cluster .cluster-label div,
+.dark .mermaid svg g.cluster .cluster-label p,
+.dark .mermaid svg g.cluster .nodeLabel {
+    color: #f8fafc !important;
+    fill: #f8fafc !important;
+    font-weight: 700 !important;
+}
+
 /* 預覽區塊內圖片與元素間距優化 */
 .prose pre {
     padding: 0 !important;
@@ -52,6 +93,7 @@
     font-weight: 600;
 }
 
+.dark .mermaid-wrapper ~ code,
 .dark .prose :not(pre) > code {
     background-color: rgba(129, 140, 248, 0.15);
     color: #818cf8;
