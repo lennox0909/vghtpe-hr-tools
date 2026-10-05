@@ -9,7 +9,7 @@ auto-service:
     - title: 使用開源小模型
       icon: fa-magnifying-glass
       color_theme: blue-600
-      description: 使用 Google 提供的 Gemma2 小模型，藉由 WebGPU 技術，讓同仁以文書桌機/筆電，順跑 AI 助理。
+      description: 使用 Google Gemma2，藉由 WebGPU 技術，讓文書桌機/筆電順跑 AI 助理。
 
     - title: 打包人事室 FAQ 資料
       icon: fa-magnifying-glass
@@ -19,12 +19,12 @@ auto-service:
     - title: 語料比對演算法
       icon: fa-magnifying-glass
       color_theme: blue-600
-      description: 使用比對與排序演算法，減輕 LLM 語言模型負擔，同步檢驗 LLM 幻覺。
+      description: 減輕 LLM 語言模型負擔，防止 LLM 幻覺。
 
-    - title: 減少 Token，降低算力需求
+    - title: 減少 Token / 算力需求
       icon: fa-magnifying-glass
       color_theme: blue-600
-      description: 小語言模型生成速度慢，沒關係！使用推薦演算法，引導使用者快速得到答覆。
+      description: 小語言模型回答速度慢，沒關係！使用推薦演算法，引導使用者快速得到答覆。
 
 # 工作流區塊：系統重構
 refactor:
