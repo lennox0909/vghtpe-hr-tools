@@ -1,7 +1,6 @@
 import { isDarkMode } from './theme.js';
 import { showToast, triggerDownload, requestModalInput } from './utils.js';
 
-// 拆開協定字串，防止剪貼簿自動轉成 Markdown 連結
 const SVG_NS = 'http' + '://www.w3.org/2000/svg';
 const XHTML_NS = 'http' + '://www.w3.org/1999/xhtml';
 const KATEX_CSS_URL = 'https' + '://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css';
@@ -10,7 +9,7 @@ const KATEX_FONT_BASE = 'https' + '://cdn.jsdelivr.net/npm/katex@0.16.11/dist/';
 let cachedKatexCssPromise = null;
 
 /**
- * 將 ArrayBuffer 轉為 Base64 字串，供字型內嵌至 SVG/Canvas 使用
+ * 將 ArrayBuffer 轉為 Base64 字串
  */
 function arrayBufferToBase64(buffer) {
     let binary = '';
@@ -23,10 +22,9 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * 透過 fetch 取得完整的 KaTeX CSS 並將 woff2 數學字型轉為 Base64 Data URI 內嵌
- * 徹底解決跨域 styleSheets 無法讀取導致矩陣與上下標跑版的問題
+ * 抓取 KaTeX CSS 並將所有 woff2 字型轉為 Base64 內嵌
  */
-async function getKatexCssText() {
+async function getKatexCssWithEmbeddedFonts() {
     if (cachedKatexCssPromise) return cachedKatexCssPromise;
 
     cachedKatexCssPromise = (async () => {
@@ -35,8 +33,8 @@ async function getKatexCssText() {
             if (!res.ok) throw new Error('無法載入 KaTeX CSS');
             let cssText = await res.text();
 
-            // 只保留 woff2 字型來源並轉為 Base64 內嵌，確保 Canvas 繪製 PNG 時字型與括號不變形且不觸發跨域污染
-            const fontRegex = /url\(["']?(fonts\/[^)"']+\.woff2)["']?\)\s*format\(["']woff2["']\)/g;
+            // 找出所有 woff2 字型檔案路徑並轉為 Base64
+            const fontRegex = /url\(["']?(fonts\/[^)"']+\.woff2)["']?\)/g;
             const matches = [...cssText.matchAll(fontRegex)];
             const uniqueFonts = [...new Set(matches.map((m) => m[1]))];
 
@@ -49,26 +47,24 @@ async function getKatexCssText() {
                             const buf = await fontRes.arrayBuffer();
                             fontMap[relPath] = `data:font/woff2;base64,${arrayBufferToBase64(buf)}`;
                         }
-                    } catch (e) {
-                        // 單一字型失敗時略過
-                    }
+                    } catch (e) {}
                 })
             );
 
-            // 將 @font-face 中的相對路徑替換為 Base64 Data URI，並移除備用的 woff/ttf 宣告
+            // 將整段 @font-face 的 src 替換為純 Base64 woff2，移除會造成跨域污染的 woff/ttf 相對路徑
             cssText = cssText.replace(
                 /src:\s*url\(["']?(fonts\/[^)"']+\.woff2)["']?\)\s*format\(["']woff2["']\)[^;]*;/g,
                 (fullMatch, relPath) => {
                     if (fontMap[relPath]) {
                         return `src: url("${fontMap[relPath]}") format("woff2");`;
                     }
-                    return fullMatch;
+                    return '';
                 }
             );
 
             return cssText;
         } catch (err) {
-            console.warn('讀取 KaTeX CSS 失敗:', err);
+            console.warn('讀取 KaTeX 字型樣式失敗:', err);
             return '';
         }
     })();
@@ -77,14 +73,95 @@ async function getKatexCssText() {
 }
 
 /**
+ * 核心關鍵：將畫面上已渲染完成的 KaTeX 真實計算樣式 (Computed Styles) 直接內聯寫入複製節點
+ * 徹底解決 SVG foreignObject 與 Canvas 繪製時矩陣、分式、上下標跑版的問題
+ */
+const INLINE_STYLE_PROPS = [
+    'display',
+    'position',
+    'top',
+    'left',
+    'right',
+    'bottom',
+    'width',
+    'height',
+    'min-width',
+    'min-height',
+    'vertical-align',
+    'text-align',
+    'font-family',
+    'font-size',
+    'font-weight',
+    'font-style',
+    'line-height',
+    'color',
+    'margin-top',
+    'margin-right',
+    'margin-bottom',
+    'margin-left',
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
+    'border-top-width',
+    'border-top-style',
+    'border-top-color',
+    'border-bottom-width',
+    'border-bottom-style',
+    'border-bottom-color',
+    'border-left-width',
+    'border-left-style',
+    'border-left-color',
+    'border-right-width',
+    'border-right-style',
+    'border-right-color',
+    'box-sizing',
+    'white-space',
+    'transform'
+];
+
+function inlineComputedStylesDeep(sourceEl, targetEl) {
+    if (!sourceEl || !targetEl || sourceEl.nodeType !== 1 || targetEl.nodeType !== 1) return;
+
+    // 若為隱藏的無障礙 MathML 標籤，直接隱藏
+    if (sourceEl.classList && sourceEl.classList.contains('katex-mathml')) {
+        targetEl.style.display = 'none';
+        return;
+    }
+
+    const computed = window.getComputedStyle(sourceEl);
+    let styleStr = '';
+    for (const prop of INLINE_STYLE_PROPS) {
+        const val = computed.getPropertyValue(prop);
+        if (val && val !== 'none' && val !== 'normal' && val !== 'auto' && val !== '0px') {
+            styleStr += `${prop}:${val};`;
+        } else if (prop === 'display' || prop === 'position' || prop === 'vertical-align') {
+            styleStr += `${prop}:${val};`;
+        }
+    }
+
+    // 保留原本 inline style 裡由 KaTeX 精算的相對單位 (如 top: -2.4em; height: 3.6em;)
+    const origInline = sourceEl.getAttribute('style') || '';
+    targetEl.setAttribute('style', `${styleStr}${origInline}`);
+
+    const srcChildren = sourceEl.children;
+    const tgtChildren = targetEl.children;
+    for (let i = 0; i < srcChildren.length; i++) {
+        if (tgtChildren[i]) {
+            inlineComputedStylesDeep(srcChildren[i], tgtChildren[i]);
+        }
+    }
+}
+
+/**
  * 將獨立 LaTeX / KaTeX 區塊公式 DOM 元素封裝為標準 SVG 元素
  */
 export function buildSvgFromMathElement(mathEl) {
-    const measureTarget = mathEl.querySelector('.katex-html') || mathEl.querySelector('.katex') || mathEl;
-    const displayTarget = mathEl.querySelector('.katex-display') || mathEl.querySelector('.katex') || mathEl;
+    // 抓取實際排版的 .katex-html 節點以獲得最精準的公式幾何尺寸
+    const katexHtmlNode = mathEl.querySelector('.katex-html') || mathEl.querySelector('.katex') || mathEl;
+    const rect = katexHtmlNode.getBoundingClientRect();
 
-    const rect = measureTarget.getBoundingClientRect();
-    const paddingX = 36;
+    const paddingX = 40;
     const paddingY = 28;
     const width = Math.ceil((rect.width || 360) + paddingX * 2);
     const height = Math.ceil((rect.height || 100) + paddingY * 2);
@@ -95,7 +172,7 @@ export function buildSvgFromMathElement(mathEl) {
     svg.setAttribute('height', String(height));
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    // 加入底色矩形，確保獨立開啟 SVG 與轉換 PNG 時背景一致
+    // 背景矩形
     const bgRect = document.createElementNS(SVG_NS, 'rect');
     bgRect.setAttribute('width', '100%');
     bgRect.setAttribute('height', '100%');
@@ -109,45 +186,64 @@ export function buildSvgFromMathElement(mathEl) {
     fo.setAttribute('width', String(width));
     fo.setAttribute('height', String(height));
 
-    const wrapper = document.createElement('div');
+    // 使用 createElementNS 建立標準 XHTML 命名空間的容器
+    const wrapper = document.createElementNS(XHTML_NS, 'div');
     wrapper.setAttribute('xmlns', XHTML_NS);
     const textColor = isDarkMode ? '#f8fafc' : '#0f172a';
-    const computedFontSize = window.getComputedStyle(displayTarget).fontSize || '18px';
-    wrapper.style.cssText = `width:${width}px;height:${height}px;display:flex;align-items:center;justify-content:center;color:${textColor};font-size:${computedFontSize};line-height:1.2;box-sizing:border-box;padding:${paddingY}px ${paddingX}px;`;
+    wrapper.setAttribute(
+        'style',
+        `width:${width}px;height:${height}px;display:flex;align-items:center;justify-content:center;color:${textColor};box-sizing:border-box;padding:${paddingY}px ${paddingX}px;`
+    );
 
-    const clonedMath = displayTarget.cloneNode(true);
-    clonedMath.style.margin = '0';
-    // 移除隱藏的 MathML 節點，僅保留經過排版的 .katex-html
-    clonedMath.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
+    const clonedKatexHtml = katexHtmlNode.cloneNode(true);
+    // 將畫面上已經完美排版的每個子節點計算樣式直接內聯寫死到複製節點上
+    inlineComputedStylesDeep(katexHtmlNode, clonedKatexHtml);
 
-    wrapper.appendChild(clonedMath);
+    // 移除可能殘留的 MathML 節點
+    clonedKatexHtml.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
+
+    wrapper.appendChild(clonedKatexHtml);
     fo.appendChild(wrapper);
     svg.appendChild(fo);
+
+    // 標記此 SVG 已經過內聯樣式處理
+    svg.dataset.mathInlined = 'true';
 
     return svg;
 }
 
 /**
- * 為匯出的 SVG 注入字型與完整 KaTeX 排版樣式，並修正 XHTML 相容性
+ * 為匯出的 SVG 注入字型與 KaTeX 排版樣式，並修正 XHTML 相容性
  */
-async function prepareSvgForExport(clonedSvg) {
+async function prepareSvgForExport(sourceSvg) {
+    const clonedSvg = sourceSvg.cloneNode(true);
     clonedSvg.setAttribute('xmlns', SVG_NS);
+
+    // 若是 Mermaid 圖表內含 KaTeX 節點，也同步將畫面上原始 SVG 內的 .katex 計算樣式內聯過去
+    if (sourceSvg.isConnected && !sourceSvg.dataset.mathInlined) {
+        const srcKatexList = sourceSvg.querySelectorAll('.katex-html, .katex');
+        const tgtKatexList = clonedSvg.querySelectorAll('.katex-html, .katex');
+        srcKatexList.forEach((srcNode, idx) => {
+            if (tgtKatexList[idx]) {
+                inlineComputedStylesDeep(srcNode, tgtKatexList[idx]);
+            }
+        });
+    }
 
     clonedSvg.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
 
-    const hasMath = Boolean(clonedSvg.querySelector('.katex, .katex-display, math'));
-    const styleElement = document.createElementNS(SVG_NS, 'style');
+    const hasMath = Boolean(
+        clonedSvg.dataset.mathInlined === 'true' ||
+        clonedSvg.querySelector('.katex, .katex-html, .vlist, math')
+    );
 
+    const styleElement = document.createElementNS(SVG_NS, 'style');
     let baseCss = `
-        svg *:not(.katex):not(.katex *):not(math):not(math *) {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-        }
-        .katex-display { margin: 0 !important; text-align: center !important; display: block !important; }
         .katex-mathml { display: none !important; }
     `;
 
     if (hasMath) {
-        const katexCss = await getKatexCssText();
+        const katexCss = await getKatexCssWithEmbeddedFonts();
         baseCss = katexCss + '\n' + baseCss;
     }
 
@@ -156,7 +252,7 @@ async function prepareSvgForExport(clonedSvg) {
 
     let svgData = new XMLSerializer().serializeToString(clonedSvg);
 
-    // 還原 <style> 區塊內被 XMLSerializer 轉義的 > 選擇器與引號，確保 .vlist-t2 > .vlist-r 矩陣排版生效
+    // 還原 <style> 區塊內被 XMLSerializer 轉義的 > 選擇器與引號
     svgData = svgData.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match) => {
         return match.replace(/&gt;/g, '>').replace(/&quot;/g, '"');
     });
@@ -171,8 +267,7 @@ async function prepareSvgForExport(clonedSvg) {
 }
 
 export async function handleSvgDownload(svg, index, prefix = 'vghtpe-chart') {
-    const clonedSvg = svg.cloneNode(true);
-    const svgData = await prepareSvgForExport(clonedSvg);
+    const svgData = await prepareSvgForExport(svg);
     const content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\r\n' + svgData;
     const defaultBaseName = `${prefix}-${index + 1}`;
     const suggestedName = `${defaultBaseName}.svg`;
@@ -202,7 +297,6 @@ export async function handleSvgDownload(svg, index, prefix = 'vghtpe-chart') {
 }
 
 export async function handlePngDownload(svg, index, prefix = 'vghtpe-chart') {
-    const clonedSvg = svg.cloneNode(true);
     const rect = svg.getBoundingClientRect();
     const vbWidth = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width) ? svg.viewBox.baseVal.width : parseFloat(svg.getAttribute('width') || '0');
     const vbHeight = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.height) ? svg.viewBox.baseVal.height : parseFloat(svg.getAttribute('height') || '0');
@@ -215,14 +309,30 @@ export async function handlePngDownload(svg, index, prefix = 'vghtpe-chart') {
     const width = Math.ceil(baseWidth + padding * 2);
     const height = Math.ceil(baseHeight + padding * 2);
 
-    clonedSvg.setAttribute('width', String(width));
-    clonedSvg.setAttribute('height', String(height));
+    const workSvg = svg.cloneNode(true);
+    if (svg.dataset.mathInlined) {
+        workSvg.dataset.mathInlined = 'true';
+    }
+    workSvg.setAttribute('width', String(width));
+    workSvg.setAttribute('height', String(height));
 
-    if (!isOffscreenMathSvg && clonedSvg.viewBox && clonedSvg.viewBox.baseVal && clonedSvg.viewBox.baseVal.width > 0) {
-        clonedSvg.setAttribute('viewBox', `${clonedSvg.viewBox.baseVal.x - padding} ${clonedSvg.viewBox.baseVal.y - padding} ${clonedSvg.viewBox.baseVal.width + padding * 2} ${clonedSvg.viewBox.baseVal.height + padding * 2}`);
+    if (!isOffscreenMathSvg && workSvg.viewBox && workSvg.viewBox.baseVal && workSvg.viewBox.baseVal.width > 0) {
+        workSvg.setAttribute('viewBox', `${workSvg.viewBox.baseVal.x - padding} ${workSvg.viewBox.baseVal.y - padding} ${workSvg.viewBox.baseVal.width + padding * 2} ${workSvg.viewBox.baseVal.height + padding * 2}`);
     }
 
-    const svgData = await prepareSvgForExport(clonedSvg);
+    // 若為畫面上的 Mermaid SVG 且內含公式，先把畫面上的真實計算樣式同步到 workSvg
+    if (svg.isConnected && !svg.dataset.mathInlined) {
+        const srcKatexList = svg.querySelectorAll('.katex-html, .katex');
+        const tgtKatexList = workSvg.querySelectorAll('.katex-html, .katex');
+        srcKatexList.forEach((srcNode, idx) => {
+            if (tgtKatexList[idx]) {
+                inlineComputedStylesDeep(srcNode, tgtKatexList[idx]);
+            }
+        });
+        workSvg.dataset.mathInlined = 'true';
+    }
+
+    const svgData = await prepareSvgForExport(workSvg);
     const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
     const defaultBaseName = `${prefix}-${index + 1}`;
 
