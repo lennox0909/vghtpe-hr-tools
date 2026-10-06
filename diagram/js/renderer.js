@@ -1,6 +1,6 @@
-import mermaid from '[https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs](https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs)';
-import katex from '[https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs](https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs)';
-import renderMathInElement from '[https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.mjs](https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.mjs)';
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
+import renderMathInElement from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.mjs';
 import { DOM } from './config.js';
 import { handleSvgDownload, handlePngDownload, buildSvgFromMathElement } from './image-export.js';
 
