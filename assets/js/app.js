@@ -102,7 +102,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // ==========================================
+    // 模組 3: 動態偵測導覽列與子控制列高度 (全站共用)
+    // ==========================================
+    const initStickyOffsetObserver = () => {
+        const nav = document.querySelector('nav') || document.querySelector('header');
+        const subnav = document.querySelector('.sticky-subnav');
+
+        const updateOffsets = () => {
+            const navHeight = nav ? nav.offsetHeight : 0;
+            const subnavHeight = subnav ? subnav.offsetHeight : 0;
+            document.documentElement.style.setProperty('--navbar-height', `${navHeight}px`);
+            document.documentElement.style.setProperty('--subnav-height', `${subnavHeight}px`);
+        };
+
+        updateOffsets();
+
+        if (window.ResizeObserver) {
+            const observer = new ResizeObserver(updateOffsets);
+            if (nav) observer.observe(nav);
+            if (subnav) observer.observe(subnav);
+        }
+        window.addEventListener('resize', updateOffsets, { passive: true });
+    };
+
     // 啟動模組
     initDropdown();
     initModals();
+    initStickyOffsetObserver();
 });

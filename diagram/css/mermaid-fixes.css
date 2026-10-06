@@ -40,11 +40,122 @@
     fill: #0f172a !important;
 }
 
-/* 預覽區塊內圖片與元素間距優化 */
-.prose pre {
-    padding: 0 !important;
-    background: transparent !important;
+/* 避免 Mermaid 溢出並支援無限放大滾動 */
+.mermaid {
+    overflow: auto;
+    text-align: center;
 }
+.mermaid svg {
+    max-width: none !important;
+    height: auto !important;
+    transform-origin: top center;
+}
+/* 修復 Mermaid 幽靈色塊 (排除 cluster / subgraph 避免把子圖邊框與底色隱藏) */
+.mermaid svg rect:not([class]):not([id]):not([fill]):not([style]):not(.cluster rect):not(.clusters rect) {
+    display: none !important;
+}
+
+/* 確保 Mermaid subgraph (.cluster) 顯示，但不強制覆蓋使用者在 Mermaid 內寫的 style fill */
+.mermaid svg g.cluster > rect,
+.mermaid svg g.cluster > path {
+    display: block !important;
+    rx: 6px;
+    ry: 6px;
+}
+
+/* 防止 subgraph 標題文字因字體寬度差異被 foreignObject 裁切 (解決 Cont... 截斷問題) */
+.mermaid svg g.cluster .cluster-label foreignObject {
+    overflow: visible !important;
+}
+.mermaid svg g.cluster .cluster-label foreignObject > div {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    max-width: none !important;
+}
+
+/* 若使用者在 Mermaid 語法中用 style 為 subgraph 指定了淺色底色 (style 含 fill)，文字保持深色以維持對比 */
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label span,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label div,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .cluster-label p,
+.dark .mermaid svg g.cluster:has(> rect[style*="fill"]) .nodeLabel {
+    color: #0f172a !important;
+    fill: #0f172a !important;
+}
+
+/* GitHub Light / Dark 風格 Markdown 程式碼區塊 (<pre><code>) */
+.prose pre {
+    padding: 1rem 1.25rem !important;
+    border-radius: 0.5rem !important;
+    background-color: #f6f8fa !important; /* GitHub Light 經典淺灰底 */
+    color: #1f2328 !important;            /* GitHub Light 高對比深色字 */
+    border: 1px solid #d0d7de !important; /* GitHub Light 柔和邊框 */
+    overflow-x: auto !important;
+    margin-top: 1.25rem !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.dark .prose pre {
+    background-color: #161b22 !important; /* GitHub Dark 經典深色底 */
+    color: #e6edf3 !important;            /* GitHub Dark 亮白字 */
+    border: 1px solid #30363d !important; /* GitHub Dark 邊框 */
+}
+
+.prose pre code {
+    background-color: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    line-height: 1.65 !important;
+}
+
+/* 優化圖表連線文字標籤外觀 */
+.edgeLabel span {
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block !important;
+}
+/* 清除空的箭頭標籤所造成的幽靈區塊 */
+.edgeLabel span:empty {
+    display: none !important;
+    padding: 0;
+}
+/* 防止加大的背景被裁切 */
+.edgeLabel foreignObject {
+    overflow: visible !important;
+}
+
+/* 強制移除 Tailwind prose 動態注入在 code 前後的 ` 反引號 */
+.prose code::before,
+.prose code::after,
+#preview code::before,
+#preview code::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* 為行內程式碼加上圓角灰紫底與邊框 */
+.prose :not(pre) > code {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.375rem;
+    font-size: 0.875em;
+    font-weight: 600;
+}
+
+.dark .mermaid-wrapper ~ code,
+.dark .prose :not(pre) > code {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+}
+
+/* 讓粗體內的 KaTeX 數學公式同步呈現加粗效果 */
+strong .katex, b .katex {
+    font-weight: 700;
+}
+
 /* 優化圖表連線文字標籤外觀 */
 .edgeLabel span {
     padding: 4px 8px;

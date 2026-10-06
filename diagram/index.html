@@ -18,8 +18,8 @@ title: 圖表即時編輯器
 <link rel="stylesheet" href="{{ '/diagram/css/animations.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/diagram/css/mermaid-fixes.css' | relative_url }}">
 
-<!-- 編輯器專屬工具列 (保留原 header 的功能按鈕) -->
-<div class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 px-4 py-2 flex justify-between items-center transition-colors">
+<!-- 編輯器專屬工具列 (套用 sticky-subnav 自動貼齊在 navbar.html 正下方) -->
+<div class="sticky-subnav bg-white/95 dark:bg-slate-800/95 backdrop-blur shadow-sm border-b border-slate-200 dark:border-slate-700 px-4 py-2 flex justify-between items-center transition-colors">
     <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
             <i class="fa-solid fa-code-branch text-blue-600"></i> 編輯器控制項
@@ -51,8 +51,8 @@ title: 圖表即時編輯器
     </div>
 </div>
 
-<!-- 工作區 (設定固定高度以融合外層佈局) -->
-<div id="main-container" class="flex flex-col md:flex-row overflow-hidden relative w-full font-sans text-slate-800 dark:text-slate-200" style="height: calc(100vh - 70px);">
+<!-- 工作區 (套用 subpage-workspace 自動扣除 navbar 與工具列高度，避免外層捲動遮擋) -->
+<div id="main-container" class="subpage-workspace flex flex-col md:flex-row overflow-hidden relative w-full font-sans text-slate-800 dark:text-slate-200">
     
     <!-- 左側：編輯器 -->
     <section id="editor-pane" class="w-full md:w-1/2 flex flex-col bg-white dark:bg-slate-900 z-10">
