@@ -1,4 +1,32 @@
-# 第一個工作流區塊：系統重構
+# 工作流區塊：AI智慧小幫手
+auto-reply:
+  header:
+    title: "人事室 AI 智慧小幫手"
+    description: "結合 WebGPU 瀏覽器地端推論與 RAG 檢索技術，兼顧資料隱私與離線可用性，提供全天候即時人事規章諮詢。"
+    button_text: "立即體驗 AI 智慧小幫手"
+    url: "/web-LLM/"
+  steps:
+    - title: WebGPU 地端輕量模型
+      icon: fa-microchip
+      color_theme: blue-600
+      description: 採用 Google Gemma 2 等開源輕量模型，透過 WebGPU 硬體加速，一般行政文書電腦即可流暢執行本地推論。
+
+    - title: 人事 FAQ 知識庫同步
+      icon: fa-database
+      color_theme: indigo-500
+      description: 連線時自動載入並快取最新版人事室 FAQ 結構化語料，支援離線瀏覽，確保法規與福利資訊即時準確。
+
+    - title: 精準語料檢索 (RAG)
+      icon: fa-magnifying-glass-chart
+      color_theme: cyan-500
+      description: 先透過本地端關鍵字與語意權重演算法鎖定高關聯條文，再交由模型總結，減輕運算負擔與 AI 幻覺。
+
+    - title: 智慧推薦與秒級秒回
+      icon: fa-bolt
+      color_theme: emerald-500
+      description: 內建動態問題推薦機制，無須等待模型長篇生成即可一鍵點選常見問答，極小化 Token 消耗並加速查詢體驗。
+
+# 工作流區塊：系統重構
 refactor:
   header:
     title: "系統重構工作流"
