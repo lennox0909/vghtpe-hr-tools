@@ -19,7 +19,7 @@ auto-reply:
     - title: 精準語料檢索 (RAG)
       icon: fa-magnifying-glass-chart
       color_theme: cyan-500
-      description: 先透過本地端關鍵字與語意權重演算法鎖定高關聯條文，再交由模型總結，大幅減輕運算負擔並杜絕 AI 幻覺。
+      description: 先透過本地端關鍵字與語意權重演算法鎖定高關聯條文，再交由模型總結，減輕運算負擔與 AI 幻覺。
 
     - title: 智慧推薦與秒級秒回
       icon: fa-bolt
