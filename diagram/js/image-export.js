@@ -22,7 +22,7 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * 抓取 KaTeX CSS 並將所有 woff2 字型轉為 Base64 內嵌
+ * 下載 katex.min.css 並將裡面的所有 woff2 字型轉成 Base64 內嵌
  */
 async function getKatexCssWithEmbeddedFonts() {
     if (cachedKatexCssPromise) return cachedKatexCssPromise;
@@ -33,38 +33,40 @@ async function getKatexCssWithEmbeddedFonts() {
             if (!res.ok) throw new Error('無法載入 KaTeX CSS');
             let cssText = await res.text();
 
-            // 找出所有 woff2 字型檔案路徑並轉為 Base64
-            const fontRegex = /url\(["']?(fonts\/[^)"']+\.woff2)["']?\)/g;
-            const matches = [...cssText.matchAll(fontRegex)];
-            const uniqueFonts = [...new Set(matches.map((m) => m[1]))];
+            // 收集所有 fonts/*.woff2 路徑
+            const fontPaths = new Set();
+            const woff2Regex = /fonts\/[A-Za-z0-9_-]+\.woff2/g;
+            let match;
+            while ((match = woff2Regex.exec(cssText)) !== null) {
+                fontPaths.add(match[0]);
+            }
 
-            const fontMap = {};
+            // 平行下載所有 woff2 並轉成 Base64 Data URI
+            const fontDataMap = {};
             await Promise.all(
-                uniqueFonts.map(async (relPath) => {
+                Array.from(fontPaths).map(async (relPath) => {
                     try {
                         const fontRes = await fetch(KATEX_FONT_BASE + relPath);
                         if (fontRes.ok) {
                             const buf = await fontRes.arrayBuffer();
-                            fontMap[relPath] = `data:font/woff2;base64,${arrayBufferToBase64(buf)}`;
+                            fontDataMap[relPath] = `data:font/woff2;base64,${arrayBufferToBase64(buf)}`;
                         }
                     } catch (e) {}
                 })
             );
 
-            // 將整段 @font-face 的 src 替換為純 Base64 woff2，移除會造成跨域污染的 woff/ttf 相對路徑
-            cssText = cssText.replace(
-                /src:\s*url\(["']?(fonts\/[^)"']+\.woff2)["']?\)\s*format\(["']woff2["']\)[^;]*;/g,
-                (fullMatch, relPath) => {
-                    if (fontMap[relPath]) {
-                        return `src: url("${fontMap[relPath]}") format("woff2");`;
-                    }
-                    return '';
-                }
-            );
+            // 移除備用的 woff 與 ttf 相對路徑宣告
+            cssText = cssText.replace(/,\s*url\([^)]+\.woff\)[^,;}]*/g, '');
+            cssText = cssText.replace(/,\s*url\([^)]+\.ttf\)[^,;}]*/g, '');
+
+            // 將每個 fonts/xxx.woff2 替換為對應的 Base64 Data URI
+            for (const [relPath, dataUri] of Object.entries(fontDataMap)) {
+                cssText = cssText.split(relPath).join(dataUri);
+            }
 
             return cssText;
         } catch (err) {
-            console.warn('讀取 KaTeX 字型樣式失敗:', err);
+            console.warn('載入 KaTeX CSS 失敗:', err);
             return '';
         }
     })();
@@ -73,94 +75,13 @@ async function getKatexCssWithEmbeddedFonts() {
 }
 
 /**
- * 核心關鍵：將畫面上已渲染完成的 KaTeX 真實計算樣式 (Computed Styles) 直接內聯寫入複製節點
- * 徹底解決 SVG foreignObject 與 Canvas 繪製時矩陣、分式、上下標跑版的問題
- */
-const INLINE_STYLE_PROPS = [
-    'display',
-    'position',
-    'top',
-    'left',
-    'right',
-    'bottom',
-    'width',
-    'height',
-    'min-width',
-    'min-height',
-    'vertical-align',
-    'text-align',
-    'font-family',
-    'font-size',
-    'font-weight',
-    'font-style',
-    'line-height',
-    'color',
-    'margin-top',
-    'margin-right',
-    'margin-bottom',
-    'margin-left',
-    'padding-top',
-    'padding-right',
-    'padding-bottom',
-    'padding-left',
-    'border-top-width',
-    'border-top-style',
-    'border-top-color',
-    'border-bottom-width',
-    'border-bottom-style',
-    'border-bottom-color',
-    'border-left-width',
-    'border-left-style',
-    'border-left-color',
-    'border-right-width',
-    'border-right-style',
-    'border-right-color',
-    'box-sizing',
-    'white-space',
-    'transform'
-];
-
-function inlineComputedStylesDeep(sourceEl, targetEl) {
-    if (!sourceEl || !targetEl || sourceEl.nodeType !== 1 || targetEl.nodeType !== 1) return;
-
-    // 若為隱藏的無障礙 MathML 標籤，直接隱藏
-    if (sourceEl.classList && sourceEl.classList.contains('katex-mathml')) {
-        targetEl.style.display = 'none';
-        return;
-    }
-
-    const computed = window.getComputedStyle(sourceEl);
-    let styleStr = '';
-    for (const prop of INLINE_STYLE_PROPS) {
-        const val = computed.getPropertyValue(prop);
-        if (val && val !== 'none' && val !== 'normal' && val !== 'auto' && val !== '0px') {
-            styleStr += `${prop}:${val};`;
-        } else if (prop === 'display' || prop === 'position' || prop === 'vertical-align') {
-            styleStr += `${prop}:${val};`;
-        }
-    }
-
-    // 保留原本 inline style 裡由 KaTeX 精算的相對單位 (如 top: -2.4em; height: 3.6em;)
-    const origInline = sourceEl.getAttribute('style') || '';
-    targetEl.setAttribute('style', `${styleStr}${origInline}`);
-
-    const srcChildren = sourceEl.children;
-    const tgtChildren = targetEl.children;
-    for (let i = 0; i < srcChildren.length; i++) {
-        if (tgtChildren[i]) {
-            inlineComputedStylesDeep(srcChildren[i], tgtChildren[i]);
-        }
-    }
-}
-
-/**
- * 將獨立 LaTeX / KaTeX 區塊公式 DOM 元素封裝為標準 SVG 元素
+ * 將獨立 LaTeX / KaTeX 區塊公式封裝為標準 SVG 元素
  */
 export function buildSvgFromMathElement(mathEl) {
-    // 抓取實際排版的 .katex-html 節點以獲得最精準的公式幾何尺寸
-    const katexHtmlNode = mathEl.querySelector('.katex-html') || mathEl.querySelector('.katex') || mathEl;
-    const rect = katexHtmlNode.getBoundingClientRect();
+    const katexNode = mathEl.querySelector('.katex-html') || mathEl.querySelector('.katex') || mathEl;
+    const displayNode = mathEl.querySelector('.katex-display') || mathEl.querySelector('.katex') || mathEl;
 
+    const rect = katexNode.getBoundingClientRect();
     const paddingX = 40;
     const paddingY = 28;
     const width = Math.ceil((rect.width || 360) + paddingX * 2);
@@ -186,73 +107,80 @@ export function buildSvgFromMathElement(mathEl) {
     fo.setAttribute('width', String(width));
     fo.setAttribute('height', String(height));
 
-    // 使用 createElementNS 建立標準 XHTML 命名空間的容器
     const wrapper = document.createElementNS(XHTML_NS, 'div');
     wrapper.setAttribute('xmlns', XHTML_NS);
+    wrapper.setAttribute('class', 'katex-export-container');
     const textColor = isDarkMode ? '#f8fafc' : '#0f172a';
+    const computedFontSize = window.getComputedStyle(displayNode).fontSize || '18px';
     wrapper.setAttribute(
         'style',
-        `width:${width}px;height:${height}px;display:flex;align-items:center;justify-content:center;color:${textColor};box-sizing:border-box;padding:${paddingY}px ${paddingX}px;`
+        `width:${width}px;height:${height}px;display:flex;align-items:center;justify-content:center;color:${textColor};font-size:${computedFontSize};box-sizing:border-box;padding:${paddingY}px ${paddingX}px;margin:0;border:0;`
     );
 
-    const clonedKatexHtml = katexHtmlNode.cloneNode(true);
-    // 將畫面上已經完美排版的每個子節點計算樣式直接內聯寫死到複製節點上
-    inlineComputedStylesDeep(katexHtmlNode, clonedKatexHtml);
+    const clonedMath = displayNode.cloneNode(true);
+    clonedMath.style.margin = '0';
+    clonedMath.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
 
-    // 移除可能殘留的 MathML 節點
-    clonedKatexHtml.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
-
-    wrapper.appendChild(clonedKatexHtml);
+    wrapper.appendChild(clonedMath);
     fo.appendChild(wrapper);
     svg.appendChild(fo);
-
-    // 標記此 SVG 已經過內聯樣式處理
-    svg.dataset.mathInlined = 'true';
 
     return svg;
 }
 
 /**
- * 為匯出的 SVG 注入字型與 KaTeX 排版樣式，並修正 XHTML 相容性
+ * 為匯出的 SVG 注入 Tailwind 邊框重置、字型與完整 KaTeX 樣式
  */
 async function prepareSvgForExport(sourceSvg) {
     const clonedSvg = sourceSvg.cloneNode(true);
     clonedSvg.setAttribute('xmlns', SVG_NS);
 
-    // 若是 Mermaid 圖表內含 KaTeX 節點，也同步將畫面上原始 SVG 內的 .katex 計算樣式內聯過去
-    if (sourceSvg.isConnected && !sourceSvg.dataset.mathInlined) {
-        const srcKatexList = sourceSvg.querySelectorAll('.katex-html, .katex');
-        const tgtKatexList = clonedSvg.querySelectorAll('.katex-html, .katex');
-        srcKatexList.forEach((srcNode, idx) => {
-            if (tgtKatexList[idx]) {
-                inlineComputedStylesDeep(srcNode, tgtKatexList[idx]);
-            }
-        });
-    }
-
     clonedSvg.querySelectorAll('.katex-mathml').forEach((el) => el.remove());
 
-    const hasMath = Boolean(
-        clonedSvg.dataset.mathInlined === 'true' ||
-        clonedSvg.querySelector('.katex, .katex-html, .vlist, math')
-    );
+    clonedSvg.querySelectorAll('foreignObject > div').forEach((div) => {
+        if (!div.getAttribute('xmlns')) {
+            div.setAttribute('xmlns', XHTML_NS);
+        }
+    });
 
-    const styleElement = document.createElementNS(SVG_NS, 'style');
-    let baseCss = `
+    const hasMath = Boolean(clonedSvg.querySelector('.katex, .katex-display, .katex-html, math'));
+
+    // 關鍵修復：加上與 Tailwind Preflight 相同的 border-width: 0 重置！
+    // 防止 KaTeX 內部的 .pstrut / .vlist / .mtable 定位元素因為瀏覽器預設 border-width: medium (3px) 而長出粗黑框！
+    const resetCss = `
+        foreignObject *, foreignObject *::before, foreignObject *::after {
+            box-sizing: border-box;
+            border-width: 0;
+            border-style: solid;
+            border-color: currentColor;
+        }
+        svg text, .nodeLabel, .edgeLabel, .cluster-label {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        }
+        .katex-display { margin: 0 !important; }
         .katex-mathml { display: none !important; }
     `;
 
+    let cssContent = resetCss;
     if (hasMath) {
         const katexCss = await getKatexCssWithEmbeddedFonts();
-        baseCss = katexCss + '\n' + baseCss;
+        // resetCss 必須放在 katexCss 之前，讓 katexCss 後面的 .frac-line (border-bottom-width: 0.04em) 能正常顯示分數線
+        cssContent = resetCss + '\n' + katexCss;
     }
 
-    styleElement.textContent = baseCss;
-    clonedSvg.insertBefore(styleElement, clonedSvg.firstChild);
+    const svgStyle = document.createElementNS(SVG_NS, 'style');
+    svgStyle.textContent = cssContent;
+    clonedSvg.insertBefore(svgStyle, clonedSvg.firstChild);
+
+    const exportContainer = clonedSvg.querySelector('.katex-export-container');
+    if (exportContainer && hasMath) {
+        const xhtmlStyle = document.createElementNS(XHTML_NS, 'style');
+        xhtmlStyle.textContent = cssContent;
+        exportContainer.insertBefore(xhtmlStyle, exportContainer.firstChild);
+    }
 
     let svgData = new XMLSerializer().serializeToString(clonedSvg);
 
-    // 還原 <style> 區塊內被 XMLSerializer 轉義的 > 選擇器與引號
     svgData = svgData.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match) => {
         return match.replace(/&gt;/g, '>').replace(/&quot;/g, '"');
     });
@@ -310,26 +238,11 @@ export async function handlePngDownload(svg, index, prefix = 'vghtpe-chart') {
     const height = Math.ceil(baseHeight + padding * 2);
 
     const workSvg = svg.cloneNode(true);
-    if (svg.dataset.mathInlined) {
-        workSvg.dataset.mathInlined = 'true';
-    }
     workSvg.setAttribute('width', String(width));
     workSvg.setAttribute('height', String(height));
 
     if (!isOffscreenMathSvg && workSvg.viewBox && workSvg.viewBox.baseVal && workSvg.viewBox.baseVal.width > 0) {
         workSvg.setAttribute('viewBox', `${workSvg.viewBox.baseVal.x - padding} ${workSvg.viewBox.baseVal.y - padding} ${workSvg.viewBox.baseVal.width + padding * 2} ${workSvg.viewBox.baseVal.height + padding * 2}`);
-    }
-
-    // 若為畫面上的 Mermaid SVG 且內含公式，先把畫面上的真實計算樣式同步到 workSvg
-    if (svg.isConnected && !svg.dataset.mathInlined) {
-        const srcKatexList = svg.querySelectorAll('.katex-html, .katex');
-        const tgtKatexList = workSvg.querySelectorAll('.katex-html, .katex');
-        srcKatexList.forEach((srcNode, idx) => {
-            if (tgtKatexList[idx]) {
-                inlineComputedStylesDeep(srcNode, tgtKatexList[idx]);
-            }
-        });
-        workSvg.dataset.mathInlined = 'true';
     }
 
     const svgData = await prepareSvgForExport(workSvg);
