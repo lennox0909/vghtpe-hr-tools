@@ -42,7 +42,7 @@ DOM.btnZoomOut.addEventListener('click', () => zoomMindmap(0.8));
 initLayout(cmEditor, fitMindmap);
 initFileIO(cmEditor, debounceUpdate);
 
-// 非同步載入初始內容：優先讀取 LocalStorage，否則抓取 sample.md
+// 非同步載入初始內容：優先讀取 LocalStorage，否則抓取 sample.txt
 async function initEditor() {
     const savedContent = localStorage.getItem(STORAGE_KEY);
     if (savedContent) {
@@ -51,7 +51,7 @@ async function initEditor() {
     } else {
         try {
             // 優先使用由 Jekyll 解析的絕對路徑，若無則降級使用相對路徑
-            const targetUrl = window.MARKMAP_SAMPLE_URL || 'sample.md';
+            const targetUrl = window.MARKMAP_SAMPLE_URL || 'sample.txt';
             const response = await fetch(targetUrl);
             
             if (!response.ok) throw new Error(`無法載入 ${targetUrl}`);
