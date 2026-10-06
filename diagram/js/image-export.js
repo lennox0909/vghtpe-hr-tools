@@ -34,7 +34,7 @@ export function buildSvgFromMathElement(mathEl) {
     const width = Math.ceil((rect.width || 320) + paddingX * 2);
     const height = Math.ceil((rect.height || 80) + paddingY * 2);
 
-    const svgNS = '[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)';
+    const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('xmlns', svgNS);
     svg.setAttribute('width', String(width));
@@ -48,7 +48,7 @@ export function buildSvgFromMathElement(mathEl) {
     fo.setAttribute('height', String(height));
 
     const wrapper = document.createElement('div');
-    wrapper.setAttribute('xmlns', '[http://www.w3.org/1999/xhtml](http://www.w3.org/1999/xhtml)');
+    wrapper.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
     const textColor = isDarkMode ? '#f8fafc' : '#0f172a';
     const computedFontSize = window.getComputedStyle(katexEl).fontSize || '16px';
     wrapper.style.cssText = `width:${width}px;height:${height}px;display:flex;align-items:center;justify-content:center;color:${textColor};font-size:${computedFontSize};box-sizing:border-box;padding:${paddingY}px ${paddingX}px;`;
@@ -66,7 +66,7 @@ export function buildSvgFromMathElement(mathEl) {
  * 為匯出的 SVG 注入字型與 KaTeX 排版樣式，並修正 XHTML 相容性
  */
 function prepareSvgForExport(clonedSvg) {
-    clonedSvg.setAttribute('xmlns', '[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)');
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
     const hasMath = clonedSvg.querySelector('.katex, math');
     const styleElement = document.createElement('style');
