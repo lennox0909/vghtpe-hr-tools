@@ -19,9 +19,9 @@ async function init() {
     initLayout();
     initFileIO(renderContent);
 
-    // 載入初始資料
+    // 載入初始資料（若 LocalStorage 為空字串或不存在，皆自動載入預設範例）
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved !== null) {
+    if (saved && saved.trim() !== '') {
         DOM.editor.value = saved;
     } else {
         DOM.editor.value = await loadDefaultContent();

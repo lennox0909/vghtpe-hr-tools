@@ -2,7 +2,16 @@ import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.mi
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
 import renderMathInElement from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.mjs';
 import { DOM } from './config.js';
-import { handleSvgDownload, handlePngDownload } from './image-export.js';
+import { handleSvgDownload, handlePngDownload, buildSvgFromMathElement } from './image-export.js';
+
+/**
+ * 產生獨立區塊公式與矩陣專用的卡片容器 HTML
+ */
+function buildMathCardHtml(renderedKatexHtml) {
+    return `<div class="math-block-wrapper group relative my-8 p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition-all hover:shadow-md flex flex-col items-center">
+        <div class="math-content w-full overflow-x-auto py-2 text-center transition-all">${renderedKatexHtml}</div>
+    </div>`;
+}
 
 /**
  * 保護並預先渲染 Markdown 內的 LaTeX 公式、行內程式碼與中文全形標點粗體
@@ -18,13 +27,12 @@ function preprocessLatexInMarkdown(markdown) {
         if (normalizedLang === 'math' || normalizedLang === 'latex') {
             const id = `MATHTOKEN${mathStore.length}END`;
             try {
-                mathStore.push(
-                    `<div class="my-4 overflow-x-auto py-2 text-center">${katex.renderToString(content.trim(), {
-                        displayMode: true,
-                        throwOnError: false,
-                        strict: false
-                    })}</div>`
-                );
+                const rendered = katex.renderToString(content.trim(), {
+                    displayMode: true,
+                    throwOnError: false,
+                    strict: false
+                });
+                mathStore.push(buildMathCardHtml(rendered));
             } catch (e) {
                 mathStore.push(match);
             }
@@ -48,18 +56,17 @@ function preprocessLatexInMarkdown(markdown) {
         return inlineId;
     });
 
-    // 3. 處理區塊公式 $$...$$ 與 \[...\]
+    // 3. 處理獨立區塊公式 $$...$$ 與 \[...\]
     text = text.replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g, (match, g1, g2) => {
         const expr = (g1 || g2 || '').trim();
         const id = `MATHTOKEN${mathStore.length}END`;
         try {
-            mathStore.push(
-                `<div class="my-4 overflow-x-auto py-1 text-center">${katex.renderToString(expr, {
-                    displayMode: true,
-                    throwOnError: false,
-                    strict: false
-                })}</div>`
-            );
+            const rendered = katex.renderToString(expr, {
+                displayMode: true,
+                throwOnError: false,
+                strict: false
+            });
+            mathStore.push(buildMathCardHtml(rendered));
         } catch (e) {
             mathStore.push(match);
         }
@@ -108,7 +115,6 @@ function fixMermaidSubgraphs(svgEl) {
             bgShape.style.setProperty('display', 'block', 'important');
             const styleAttr = (bgShape.getAttribute('style') || '').toLowerCase();
             const fillAttr = (bgShape.getAttribute('fill') || '').toLowerCase();
-            // 檢查使用者是否在 Mermaid 語法中用 style 指定了淺色底色 (如 #f9f9f9, #fff, #f5f5f5 等)
             if (styleAttr.includes('fill:') || (fillAttr && fillAttr !== 'none')) {
                 hasCustomLightBg = true;
             }
@@ -121,7 +127,7 @@ function fixMermaidSubgraphs(svgEl) {
             const origWidth = parseFloat(fo.getAttribute('width') || '0');
             const origX = parseFloat(fo.getAttribute('x') || '0');
             if (origWidth > 0) {
-                const extraWidth = 80; // 左右各放寬 40px 避免粗體或中英混排被切邊
+                const extraWidth = 80;
                 fo.setAttribute('width', String(origWidth + extraWidth));
                 fo.setAttribute('x', String(origX - extraWidth / 2));
             }
@@ -161,18 +167,28 @@ export async function renderContent() {
         html = html.replace(/MATHTOKEN(\d+)END/g, (_, idx) => mathStore[Number(idx)]);
         DOM.preview.innerHTML = html;
 
-        // 保險機制：若還有 code.language-latex 或 code.language-math 區塊則直接轉換
+        // 保險機制：若還有 code.language-latex 或 code.language-math 區塊則直接轉換為公式卡片
         const mathCodeBlocks = DOM.preview.querySelectorAll('code.language-latex, code.language-math');
         mathCodeBlocks.forEach((block) => {
             const pre = block.parentElement;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'my-4 overflow-x-auto py-2 text-center';
-            wrapper.innerHTML = katex.renderToString(block.textContent.trim(), {
-                displayMode: true,
-                throwOnError: false,
-                strict: false
-            });
-            pre.replaceWith(wrapper);
+            const temp = document.createElement('div');
+            temp.innerHTML = buildMathCardHtml(
+                katex.renderToString(block.textContent.trim(), {
+                    displayMode: true,
+                    throwOnError: false,
+                    strict: false
+                })
+            );
+            pre.replaceWith(temp.firstElementChild);
+        });
+
+        // 為所有獨立區塊公式與矩陣掛載右上角「放大、縮小、SVG、PNG」工具列
+        const mathWrappers = DOM.preview.querySelectorAll('.math-block-wrapper');
+        mathWrappers.forEach((wrapper, idx) => {
+            const mathContent = wrapper.querySelector('.math-content');
+            if (mathContent) {
+                attachMathToolbar(wrapper, mathContent, idx);
+            }
         });
     } else {
         DOM.preview.innerHTML = "<p class='text-red-500'>Marked.js 尚未載入完成。</p>";
@@ -229,6 +245,9 @@ export async function renderContent() {
     await Promise.all(renderPromises);
 }
 
+/**
+ * 為 Mermaid 圖表掛載工具列
+ */
 function attachToolbar(container, svg, index) {
     let currentZoom = 100;
     svg.style.width = '100%';
@@ -236,6 +255,42 @@ function attachToolbar(container, svg, index) {
     svg.style.height = 'auto';
     svg.style.transition = 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.2s';
 
+    const toolbar = createToolbarButtons(
+        () => { currentZoom += 20; svg.style.width = `${currentZoom}%`; svg.style.minWidth = `${currentZoom}%`; },
+        () => { currentZoom = Math.max(20, currentZoom - 20); svg.style.width = `${currentZoom}%`; svg.style.minWidth = `${currentZoom}%`; },
+        () => handleSvgDownload(svg, index, 'vghtpe-chart'),
+        () => handlePngDownload(svg, index, 'vghtpe-chart')
+    );
+    container.appendChild(toolbar);
+}
+
+/**
+ * 為獨立區塊公式與矩陣掛載相同的「放大、縮小、SVG、PNG」工具列
+ */
+function attachMathToolbar(container, mathContent, index) {
+    let currentZoom = 100;
+    mathContent.style.fontSize = '100%';
+    mathContent.style.transition = 'font-size 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+
+    const toolbar = createToolbarButtons(
+        () => { currentZoom = Math.min(300, currentZoom + 20); mathContent.style.fontSize = `${currentZoom}%`; },
+        () => { currentZoom = Math.max(40, currentZoom - 20); mathContent.style.fontSize = `${currentZoom}%`; },
+        () => {
+            const mathSvg = buildSvgFromMathElement(mathContent);
+            handleSvgDownload(mathSvg, index, 'vghtpe-formula');
+        },
+        () => {
+            const mathSvg = buildSvgFromMathElement(mathContent);
+            handlePngDownload(mathSvg, index, 'vghtpe-formula');
+        }
+    );
+    container.appendChild(toolbar);
+}
+
+/**
+ * 建立共用的「放大、縮小、SVG、PNG」浮動按鈕組 DOM
+ */
+function createToolbarButtons(onZoomIn, onZoomOut, onDownloadSvg, onDownloadPng) {
     const toolbar = document.createElement('div');
     toolbar.className = 'toolbar absolute top-3 right-3 flex gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg p-1 z-20';
     
@@ -244,28 +299,28 @@ function attachToolbar(container, svg, index) {
 
     const bIn = document.createElement('button');
     bIn.className = btnBase;
-    bIn.title = "放大圖表";
+    bIn.title = "放大";
     bIn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>';
-    bIn.onclick = () => { currentZoom += 20; svg.style.width = `${currentZoom}%`; svg.style.minWidth = `${currentZoom}%`; };
+    bIn.onclick = onZoomIn;
 
     const bOut = document.createElement('button');
     bOut.className = btnBase;
-    bOut.title = "縮小圖表";
+    bOut.title = "縮小";
     bOut.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>';
-    bOut.onclick = () => { currentZoom = Math.max(20, currentZoom - 20); svg.style.width = `${currentZoom}%`; svg.style.minWidth = `${currentZoom}%`; };
+    bOut.onclick = onZoomOut;
 
     const bDlSvg = document.createElement('button');
     bDlSvg.className = flexBtnBase;
     bDlSvg.title = "下載 SVG 向量圖";
     bDlSvg.innerHTML = '<span class="text-[10px] font-bold">SVG</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-    bDlSvg.onclick = () => handleSvgDownload(svg, index);
+    bDlSvg.onclick = onDownloadSvg;
 
     const bDlPng = document.createElement('button');
     bDlPng.className = flexBtnBase;
     bDlPng.title = "下載 PNG 圖片";
     bDlPng.innerHTML = '<span class="text-[10px] font-bold">PNG</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-    bDlPng.onclick = () => handlePngDownload(svg, index);
+    bDlPng.onclick = onDownloadPng;
 
     toolbar.append(bIn, bOut, bDlSvg, bDlPng);
-    container.appendChild(toolbar);
+    return toolbar;
 }
