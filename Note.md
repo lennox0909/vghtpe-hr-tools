@@ -94,3 +94,44 @@ tree /F
 tree /F /A > project_structure.txt
 
 ```
+
+## `git` 新版指令 
+
+`git checkout` 與 `git switch` 最大的差異在於「職責是否單一」**與**「防呆安全性」。
+
+在早期的 Git 中，`git checkout` 一人身兼兩份完全不同的工作：**「切換分支」**與**「還原檔案內容」**，這常讓開發者在分支名稱與資料夾名稱相同時誤操作，或是不小心把修改到一半的程式碼覆蓋掉。因此，Git 官方從 **2.23 版本**開始，將 `git checkout` 的兩大功能正式拆分成兩個語意明確的新指令：**`git switch`（專門管分支）** 與 **`git restore`（專門管檔案）**。
+
+---
+
+### 1. 指令對照與職責拆分表
+
+| 操作目的 | 傳統萬用指令 (`git checkout`) | 現代專用指令 (`git switch` / `git restore`) | 說明 |
+| --- | --- | --- | --- |
+| **切換到既有分支** | `git checkout main` | `git switch main` | 單純切換分支，不會被誤判成還原名為 `main` 的檔案 |
+| **建立並切換新分支** | `git checkout -b fix/diagram` | `git switch -c fix/diagram` | `-c` 代表 `--create`，語意比 `-b` 更直觀 |
+| **切回上一個分支** | `git checkout -` | `git switch -` | 在兩個分支間快速來回切換 |
+| **放棄單一檔案修改** | `git checkout -- index.html` | `git restore index.html` | 將檔案還原成最後一次 Commit 的狀態 |
+| **從其他分支抽檔案** | `git checkout feat/LaTex -- diagram/` | `git restore -s feat/LaTex diagram/` | 不切換分支，只把指定分支的某個目錄/檔案抓過來 |
+
+---
+
+### 2. 為什麼推薦改用 `git switch`？（三大核心差異）
+
+* **避免「分支與目錄同名」的歧義災難**：
+在你的專案中，剛好曾經有一個叫做 `diagram` 的資料夾，如果你同時也建立了一個叫做 `diagram` 的分支，當你輸入 `git checkout diagram` 時，Git 與開發者很容易搞混：「你是要切換到 `diagram` 分支，還是要把 `diagram/` 資料夾的修改全部洗掉還原？」
+而使用 `git switch diagram`，Git 百分之百只會去尋找名為 `diagram` 的分支，絕不會動到你的檔案。
+
+
+* **預設具備「防 Detached HEAD（斷頭狀態）」保護**：
+* 用 `git checkout <Commit_Hash>` 時，Git 會直接讓你跳到某個歷史 Commit 上（進入 Detached HEAD 狀態），在這個狀態下寫程式並 Commit，切回分支後很容易找不到剛剛寫的紀錄。
+* 用 `git switch <Commit_Hash>` 時，Git 預設會**拒絕執行並報錯提醒**，除非你明確加上 `--detach` 參數（`git switch -d <Commit_Hash>`），安全性高很多。
+
+
+* **與 `git restore` 完美分工**：
+現在的標準心智模型非常乾淨：
+* 只要想**動分支** 👉 一律用 **`git switch`**
+* 只要想**救檔案** 👉 一律用 **`git restore`**
+
+
+
+日常開發切換與建立分支時，全面使用 `git switch` 與 `git switch -c` 是目前最安全且現代化的做法；而 `git checkout` 依然完全保留向下相容，在舊腳本或跨分支抽取特定檔案時偶爾還是看得到它的身影。
