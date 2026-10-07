@@ -3,7 +3,7 @@ layout: default
 title: 北榮人事室AI助理介紹
 ---
 
-<!-- 頁面專屬依賴 (default.html 已載入 Tailwind 主程式，這裡僅做樣式擴充) -->
+<!-- 頁面專屬依賴 -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <script>
@@ -31,11 +31,36 @@ title: 北榮人事室AI助理介紹
     }
 </style>
 
+<!-- 登陸頁專屬導覽列 (改為 sticky 避免與全站 navbar 重疊) -->
+<nav class="sticky top-0 w-full z-40 glass-card shadow-sm transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center gap-2">
+                <div class="bg-primary-600 text-white p-2 rounded-lg">
+                    <i class="ph ph-cpu text-xl"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight text-slate-800">北榮人事室<span class="text-primary-600">AI助理</span></span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#features" class="text-slate-600 hover:text-primary-600 font-medium transition-colors">特色功能</a>
+                <a href="#how-to-use" class="text-slate-600 hover:text-primary-600 font-medium transition-colors">使用方式</a>
+                <a href="#dev-story" class="text-slate-600 hover:text-primary-600 font-medium transition-colors">開發小故事</a>
+            </div>
+            <div>
+                <!-- 將「立即體驗」連結指向 Web-LLM 首頁 -->
+                <a href="{{ '/web-LLM/' | relative_url }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-full hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5">
+                    立即體驗
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
 <!-- 主要內容區開始 -->
-<section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden text-slate-800 antialiased">
+<section class="relative pt-20 pb-20 lg:pt-32 lg:pb-32 overflow-hidden text-slate-800 antialiased">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-100 via-white to-slate-50"></div>
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50 text-primary-700 font-medium text-sm mb-6 border border-primary-100 shadow-sm">
             <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
             100% 瀏覽器本地端安全執行
