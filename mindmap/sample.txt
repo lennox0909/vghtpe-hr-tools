@@ -11,7 +11,7 @@
   - `inline code`
   - [x] 勾選
   -
-    ```js
+    ```javascript
     console.log('hello, JavaScript')
     ```
   - 
