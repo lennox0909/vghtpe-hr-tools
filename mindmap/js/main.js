@@ -39,7 +39,7 @@ DOM.btnZoomIn.addEventListener('click', () => zoomMindmap(1.2));
 DOM.btnZoomOut.addEventListener('click', () => zoomMindmap(0.8));
 
 // 啟動佈局與檔案 IO 事件
-initLayout(cmEditor, fitMindmap);
+//initLayout(cmEditor, fitMindmap);
 initFileIO(cmEditor, debounceUpdate);
 
 // 非同步載入初始內容：優先讀取 LocalStorage，否則抓取 sample.txt
