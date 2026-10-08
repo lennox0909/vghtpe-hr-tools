@@ -21,10 +21,16 @@ title: 北榮人事室AI助理
                     <line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>
                 </svg>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-wide leading-tight">北榮人事室AI助理</h1>
-                    <h1 class="text-lg sm:text-sm font-bold tracking-wide leading-tight">建議使用桌機/筆電的Chrome瀏覽器</h1>
-                    <p class="text-[12px] sm:text-xs text-slate-400">100%瀏覽器本地端儲存與執行</p>
-                    <p class="text-[12px] sm:text-xs text-slate-400">首次使用需等待下載AI模型到您的設備</p>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-bold tracking-wide leading-tight">北榮人事室AI助理</h1>
+                        <a href="{{ '/web-LLM/user-guide/' | relative_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors border border-blue-500/30" title="開啟使用說明">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                            使用說明
+                        </a>
+                    </div>
+                    <h2 class="text-[12px] sm:text-sm font-bold tracking-wide leading-tight text-slate-300 mt-1">建議使用桌機/筆電的Chrome瀏覽器</h2>
+                    <p class="text-[10px] sm:text-xs text-slate-400">100%瀏覽器本地端儲存與執行</p>
+                    <p class="text-[10px] sm:text-xs text-slate-400">首次使用需等待下載AI模型到您的設備</p>
                 </div>
             </div>
             
@@ -34,11 +40,11 @@ title: 北榮人事室AI助理
                         <option value="{{ model.value }}">{{ model.label }}</option>
                     {% endfor %}
                 </select>
-               
+            
                 <button id="clear-btn" class="flex-shrink-0 p-2.5 sm:p-3 bg-slate-700 hover:bg-red-600/80 border border-slate-600 rounded-lg text-slate-300 transition-colors h-[42px] sm:h-[46px] flex items-center justify-center" title="清除對話紀錄">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
-               
+            
                 <button id="settings-btn" class="flex-shrink-0 p-2.5 sm:p-3 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-slate-300 transition-colors h-[42px] sm:h-[46px] flex items-center justify-center" title="參數設定">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 </button>

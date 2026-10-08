@@ -17,8 +17,6 @@ export const DOM = {
     btnClearEditor: document.getElementById('btn-clear-editor'),
     btnImportFile: document.getElementById('btn-import-file'),
     fileImport: document.getElementById('file-import'),
-    btnTextZoomIn: document.getElementById('btn-text-zoom-in'),
-    btnTextZoomOut: document.getElementById('btn-text-zoom-out'),
     mainContainer: document.getElementById('main-container')
 };
 

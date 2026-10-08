@@ -1,10 +1,10 @@
 # 工作流區塊：AI智慧小幫手
 auto-reply:
   header:
-    title: "人事室 AI 智慧小幫手"
+    title: "AI 智慧小幫手"
     description: "結合 WebGPU 瀏覽器地端推論與 RAG 檢索技術，兼顧資料隱私與離線可用性，提供全天候即時人事規章諮詢。"
-    button_text: "立即體驗 AI 智慧小幫手"
-    url: "/web-LLM/"
+    button_text: "了解更多"
+    url: "/web-LLM/user-guide/"
   steps:
     - title: WebGPU 地端輕量模型
       icon: fa-microchip

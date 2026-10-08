@@ -2,40 +2,71 @@
 layout: default
 ---
 
-<!-- 引入 Hero 區塊組件 -->
-{% include hero.html %}
+<!-- 1. Hero 區塊 -->
+<section id="hero" class="relative">
+    <!-- 無障礙定位點 (導盲磚) -->
+    <div class="max-w-6xl mx-auto px-6 pt-4 absolute w-full left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+        <a href="#hero" accesskey="U" title="上方主要介紹區塊" class="inline-block font-mono text-lg font-bold text-slate-300 hover:text-blue-600 focus:text-blue-600 transition-colors pointer-events-auto">:::</a>
+    </div>
+    
+    <!-- 引入 Hero 區塊組件 -->
+    {% include hero.html %}
+</section>
 
 <!-- 主內容區 -->
 <main class="max-w-6xl mx-auto py-16 px-6">
     
-    <!-- 核心工具列標題與狀態 -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-        <div>
+    <!-- 2. Tools 區塊 (核心工具列) -->
+    <section id="tools" class="mb-24">
+        <!-- 無障礙定位點 (導盲磚) -->
+        <a href="#tools" accesskey="C" title="中央核心工具列區塊" class="inline-block font-mono text-lg font-bold text-slate-300 hover:text-blue-600 focus:text-blue-600 transition-colors mb-2">:::</a>
+        
+        <!-- 核心工具列標題與狀態 -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold flex items-center mb-2 text-slate-900">
+                    <span class="bg-blue-600 w-1.5 h-8 rounded-full mr-4"></span>
+                    核心工具列
+                </h2>
+                <p class="text-slate-500">快速訪問人事室核心管理工具</p>
+            </div>
+            <div class="flex space-x-2">
+                <!-- 綁定系統運行狀態 -->
+                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ site.data.status.state }}</span>
+                <!-- 綁定最後更新日期 -->
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">更新於 {{ site.data.status.updated_date }}</span>
+            </div>
+        </div>
+
+        <!-- 利用資料驅動：自動渲染所有工具卡片 -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for tool in site.data.tools %}
+                {% include tool_card.html tool=tool %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 3. Workflow 區塊 (作業流程) -->
+    <section id="workflow" class="mb-12">
+        <!-- 無障礙定位點 (導盲磚) -->
+        <a href="#workflow" accesskey="B" title="下方作業流程區塊" class="inline-block font-mono text-lg font-bold text-slate-300 hover:text-indigo-600 focus:text-indigo-600 transition-colors mb-2">:::</a>
+
+        <!-- 新增 Workflow 專屬標題 -->
+        <div class="mb-10">
             <h2 class="text-3xl font-bold flex items-center mb-2 text-slate-900">
-                <span class="bg-blue-600 w-1.5 h-8 rounded-full mr-4"></span>
-                核心工具列
+                <span class="bg-indigo-600 w-1.5 h-8 rounded-full mr-4"></span>
+                工作流
             </h2>
-            <p class="text-slate-500">快速訪問人事室數位化轉型之核心管理工具</p>
+            <p class="text-slate-500">優化流程與規範</p>
         </div>
-        <div class="flex space-x-2">
-            <!-- 綁定系統運行狀態 -->
-            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ site.data.status.state }}</span>
-            <!-- 綁定最後更新日期 -->
-            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">更新於 {{ site.data.status.updated_date }}</span>
+
+        <!-- 利用資料驅動：先 assign 賦值避開語法解析錯誤，再傳入 include -->
+        <div class="flex flex-col gap-12">
+            {% for workflow in site.data.workflows %}
+                {% assign workflow_data = workflow[1] %}
+                {% include workflow.html data=workflow_data %}
+            {% endfor %}
         </div>
-    </div>
-
-    <!-- 利用資料驅動：自動渲染所有工具卡片 -->
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
-        {% for tool in site.data.tools %}
-            {% include tool_card.html tool=tool %}
-        {% endfor %}
-    </div>
-
-    <!-- 利用資料驅動：先 assign 賦值避開語法解析錯誤，再傳入 include -->
-    {% for workflow in site.data.workflows %}
-        {% assign workflow_data = workflow[1] %}
-        {% include workflow.html data=workflow_data %}
-    {% endfor %}
+    </section>
     
 </main>
