@@ -19,16 +19,6 @@ title: 北榮人事室AI助理介紹
     }
 </script>
 <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-    .gradient-text {
-        background: linear-gradient(135deg, #0284c7, #0ea5e9);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
     /* 讓整個 html 支援平滑捲動，點擊左側選單時會有滑動效果 */
     html {
         scroll-behavior: smooth;
@@ -47,7 +37,7 @@ title: 北榮人事室AI助理介紹
     </nav>
 
     <!-- 左側固定選單 (Sidebar) -->
-    <aside class="hidden md:flex flex-col w-64 flex-shrink-0 sticky top-24 self-start glass-card rounded-3xl p-6 shadow-sm border border-slate-200 z-10">
+    <aside class="hidden md:flex flex-col w-64 flex-shrink-0 sticky top-24 self-start bg-white/90 backdrop-blur rounded-3xl p-6 shadow-sm border border-white/50 z-10">
         <!-- 標題與 Icon -->
         <div class="flex flex-col items-center justify-center gap-2 mb-6 pb-6 border-b border-slate-100 text-center">
             <h2 class="font-bold text-xl tracking-tight text-slate-800 leading-snug">
@@ -101,7 +91,8 @@ title: 北榮人事室AI助理介紹
             
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-slate-800">
                 全天候為您解答人事規章<br class="hidden md:block" />
-                <span class="gradient-text leading-relaxed">保護您的隱私！</span>
+                <!-- 替換為 Tailwind 漸層文字類別 -->
+                <span class="bg-gradient-to-br from-primary-600 to-primary-500 bg-clip-text text-transparent leading-relaxed">保護您的隱私！</span>
             </h1>
             
             <p class="mt-4 text-xl text-slate-600 max-w-2xl mb-10 leading-relaxed">
@@ -123,7 +114,7 @@ title: 北榮人事室AI助理介紹
                 <p class="text-lg text-slate-600">兼顧資料隱私與離線可用性，提供超越傳統搜尋的智慧體驗。</p>
             </div>
 
-            <!-- 改為 2x2 網格以適應剩餘寬度 -->
+            <!-- 2x2 網格以適應剩餘寬度 -->
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:shadow-lg transition-shadow group">
                     <div class="w-14 h-14 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:text-white transition-colors duration-300">
@@ -167,8 +158,6 @@ title: 北榮人事室AI助理介紹
             </div>
 
             <div class="flex flex-col lg:flex-row justify-between items-start gap-6 relative">
-                <!-- 隱藏連線，在卡片佈局中改用獨立設計 -->
-                
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
                     <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">1</div>
                     <h3 class="text-xl font-bold mb-3 text-slate-800">準備環境</h3>
@@ -177,11 +166,15 @@ title: 北榮人事室AI助理介紹
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
                     <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">2</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-800">載入模型</h3>
-                    <p class="text-slate-600 leading-relaxed">首次使用需於頁面上方點擊「載入」按鈕。請在 Wi-Fi 環境下進行，系統將下載約 <strong>1.9GB</strong> 的輕量模型至設備。</p>
-                    <div class="mt-4 text-xs text-amber-700 bg-amber-50 py-2 px-3 rounded-lg inline-flex items-center gap-1">
-                        <i class="ph ph-info-fill"></i> 此過程只需下載一次
+                    
+                    <div class="flex flex-wrap items-center gap-3 mb-3">
+                        <h3 class="text-xl font-bold text-slate-800">載入模型與資料</h3>
+                        <span class="text-xs text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-flex items-center font-medium">
+                            只需下載一次
+                        </span>
                     </div>
+                    
+                    <p class="text-slate-600 leading-relaxed">首次使用需於頁面上方點擊「載入」按鈕。請在 Wi-Fi 環境下進行，系統將下載約 <strong>1.9GB</strong> 的輕量模型至設備。</p>
                 </div>
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
@@ -229,8 +222,7 @@ title: 北榮人事室AI助理介紹
                         <i class="ph ph-lightbulb text-amber-500"></i>
                         神隊友：混合式模糊檢索 (Hybrid Fuzzy Search)
                     </h3>
-                    <!-- <p class="text-slate-600 leading-relaxed mb-6 text-sm"> -->
-                    <p class="text-slate-600 leading-relaxed">
+                    <p class="text-slate-600 leading-relaxed mb-6 text-sm">
                         為了解決上述痛點，我們為小模型打造了檢索增強生成 (RAG) 架構：
                     </p>
                     
