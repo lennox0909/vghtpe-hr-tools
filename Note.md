@@ -187,7 +187,7 @@ Jekyll 是基於 Ruby 的工具，並非 VS Code 擴充套件，需依序完成�
 *   **Gemfile 設定**：
     如果遇到缺件錯誤 (如 `Could not find 'minima'`)，請確認專案根目錄的 `Gemfile` 中有宣告必要的套件：
     ```ruby
-    source "[https://rubygems.org](https://rubygems.org)"
+    source "https://rubygems.org"
     gem "jekyll"
     gem "minima" # 預設佈景主題
     gem "webrick" # 新版 Ruby 可能需額外加入此伺服器套件
