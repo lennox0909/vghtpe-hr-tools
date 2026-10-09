@@ -154,6 +154,8 @@ bundle exec jekyll serve
 # Server address: http://127.0.0.1:4000/
 ```
 
+- 
+
 ## 1. Tailwind CDN 改用 Tailwind 本地端編譯
 
 為了提升網頁載入速度並避免樣式閃爍 (FOUC)，將 Tailwind 從 CDN 載入改為本地編譯流程：
