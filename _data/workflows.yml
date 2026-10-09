@@ -8,22 +8,22 @@ auto-reply:
   steps:
     - title: WebGPU 地端輕量模型
       icon: fa-microchip
-      color_theme: blue-600
+      color_theme: bg-blue-600
       description: 採用 Google Gemma 2 等開源輕量模型，透過 WebGPU 硬體加速，一般行政文書電腦即可流暢執行本地推論。
 
     - title: 人事 FAQ 知識庫同步
       icon: fa-database
-      color_theme: indigo-500
+      color_theme: bg-indigo-500
       description: 連線時自動載入並快取最新版人事室 FAQ 結構化語料，支援離線瀏覽，確保法規與福利資訊即時準確。
 
     - title: 精準語料檢索 (RAG)
       icon: fa-magnifying-glass-chart
-      color_theme: cyan-500
+      color_theme: bg-cyan-500
       description: 先透過本地端關鍵字與語意權重演算法鎖定高關聯條文，再交由模型總結，減輕運算負擔與 AI 幻覺。
 
     - title: 智慧推薦與秒級秒回
       icon: fa-bolt
-      color_theme: emerald-500
+      color_theme: bg-emerald-500
       description: 內建動態問題推薦機制，無須等待模型長篇生成即可一鍵點選常見問答，極小化 Token 消耗並加速查詢體驗。
 
 # 工作流區塊：系統重構
@@ -36,22 +36,22 @@ refactor:
   steps:
     - title: 流程現況盤點
       icon: fa-magnifying-glass
-      color_theme: blue-600
+      color_theme: bg-blue-600
       description: 釐清既有行政作業瓶頸，識別自動化需求優先順序。
 
     - title: 業務模組拆解
       icon: fa-cubes
-      color_theme: indigo-500
+      color_theme: bg-indigo-500
       description: 將龐雜人事規章拆解為獨立邏輯模組，降低耦合度。
 
     - title: 自動化邏輯導入
       icon: fa-robot
-      color_theme: cyan-500
+      color_theme: bg-cyan-500
       description: 導入現代化程式架構與 API，實現跨系統數據即時交換。
 
     - title: 持續驗證與部署
       icon: fa-circle-check
-      color_theme: emerald-500
+      color_theme: bg-emerald-500
       description: 透過單元測試與部署，確保核心作業零風險轉型。
 
 # 第二個工作流區塊：新進人員培訓 (這就是你新增的區塊)

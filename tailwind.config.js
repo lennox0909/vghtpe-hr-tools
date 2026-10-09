@@ -4,6 +4,7 @@ module.exports = {
     "./**/*.html",
     "./**/*.md",
     "./**/*.js",
+    "./_data/**/*.yml", // 讓 Tailwind 掃描 YAML 資料檔
     "!./node_modules/**",
     "!./_site/**"
   ],
