@@ -138,6 +138,22 @@ tree /F /A > project_structure.txt
 
 # 專案環境設定與開發筆記
 
+總而言之，在 `VS Code` 需開啟兩個 Terminal，一個跑 `node.js`，另一個跑 `ruby`。
+
+- node.js
+```bash
+npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch
+```
+
+- ruby
+```bash
+# 啟動本地端 Jekyll 伺服器進行預覽
+
+bundle exec jekyll serve
+
+# Server address: http://127.0.0.1:4000/
+```
+
 ## 1. Tailwind CDN 改用 Tailwind 本地端編譯
 
 為了提升網頁載入速度並避免樣式閃爍 (FOUC)，將 Tailwind 從 CDN 載入改為本地編譯流程：
@@ -194,3 +210,48 @@ Jekyll 是基於 Ruby 的工具，並非 VS Code 擴充套件，需依序完成�
     ```
 *   **雙終端機開發模式**：
     開發時，需在 VS Code 開啟兩個終端機分頁：一個執行 Tailwind 的 `--watch` 自動編譯，另一個執行 `jekyll serve` 架設伺服器。
+
+
+# macOS 環境設定與開發筆記
+
+## 在 VS Code 安裝 Jekyll (macOS 環境)
+
+macOS 系統雖然內建 Ruby，但為了避免系統權限問題（例如常見的 `Gem::FilePermissionError`），強烈建議**不要**使用系統內建的 Ruby，而是透過 Homebrew 來安裝獨立的 Ruby 開發環境。請依照以下步驟在 VS Code 的終端機 (Terminal) 中進行設定：
+
+### 1. 安裝 Homebrew (若尚未安裝)
+Homebrew 是 macOS 必備的套件管理工具。若您的電腦還沒安裝，請在終端機貼上以下指令：
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### 2. 透過 Homebrew 安裝 Ruby
+使用 Homebrew 安裝最新版的 Ruby 開發環境：
+```bash
+brew install ruby
+```
+### 3. 設定環境變數 (非常重要)
+為了讓系統優先使用 Homebrew 安裝的 Ruby，而不是 macOS 內建的舊版 Ruby，需要將其路徑加入環境變數。請在終端機執行以下指令（以 macOS 預設的 `zsh` 為例）：
+```bash
+# 針對 Apple Silicon (M1/M2/M3) 晶片的 Mac：
+echo 'export PATH="/opt/homebrew/opt/ruby/bin:$PATH"' >> ~/.zshrc
+
+# 針對較舊的 Intel 晶片 Mac：
+# echo 'export PATH="/usr/local/opt/ruby/bin:$PATH"' >> ~/.zshrc
+
+# 重新載入設定檔讓變數立即生效：
+source ~/.zshrc
+```
+### 4. 安裝 Jekyll 與 Bundler
+確認 Ruby 環境切換成功後，即可全域安裝 Jekyll 與 Ruby 的套件管理工具 Bundler：
+```bash
+gem install jekyll bundler
+```
+### 5. 安裝專案套件並啟動
+確認您的 VS Code 終端機目前位於專案的根目錄（也就是有 `Gemfile` 的資料夾），接著執行：
+```bash
+# 根據 Gemfile 安裝專案所需的所有套件
+bundle install
+
+# 啟動本地端 Jekyll 伺服器進行預覽
+bundle exec jekyll serve
+```
