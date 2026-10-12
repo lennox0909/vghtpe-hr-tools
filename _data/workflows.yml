@@ -54,7 +54,7 @@ refactor:
       color_theme: bg-emerald-500
       description: 透過單元測試與部署，確保核心作業零風險轉型。
 
-# 第二個工作流區塊：新進人員培訓 (這就是你新增的區塊)
+# 新進人員培訓
 
 # training:
 #   header:
