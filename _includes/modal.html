@@ -10,15 +10,24 @@
         </div>
         <div class="p-8 pt-6">
             <div class="mb-8">
-                <h5 class="text-blue-600 font-bold text-sm mb-1">臺北榮民總醫院</h5>
-                <p class="text-slate-500 text-xs font-medium mb-4">資訊工程師</p>
-                <h4 class="text-slate-900 font-black text-2xl mb-1">蔡秉熹</h4>
-                <p class="text-slate-400 text-sm font-medium">Tsai, Bing-Shi (Leno Tsai)</p>
+                <h5 class="text-blue-600 font-bold text-sm mb-1">{{ site.data.contact.organization }}</h5>
+                <p class="text-slate-500 text-xs font-medium mb-4">{{ site.data.contact.title }}</p>
+                <h4 class="text-slate-900 font-black text-2xl mb-1">{{ site.data.contact.name.zh }}</h4>
+                <p class="text-slate-400 text-sm font-medium">{{ site.data.contact.name.en }}</p>
             </div>
             <ul class="space-y-4 text-sm">
-                <li class="flex items-center text-slate-600"><div class="w-8 flex justify-center text-slate-400"><i class="fa-solid fa-phone-flip text-xs"></i></div><span>02-28712121 轉 86243</span></li>
-                <li class="flex items-center text-slate-600"><div class="w-8 flex justify-center text-slate-400"><i class="fa-solid fa-envelope text-xs"></i></div><a href="mailto:bhtsai2@vghtpe.gov.tw" class="hover:text-blue-600 transition-colors">bhtsai2@vghtpe.gov.tw</a></li>
-                <li class="flex items-start text-slate-600 leading-tight"><div class="w-8 flex justify-center text-slate-400 mt-1"><i class="fa-solid fa-location-dot text-xs"></i></div><span>112 臺北市北投區石牌路二段201號</span></li>
+                <li class="flex items-center text-slate-600">
+                    <div class="w-8 flex justify-center text-slate-400"><i class="fa-solid fa-phone-flip text-xs"></i></div>
+                    <span>{{ site.data.contact.phone }}</span>
+                </li>
+                <li class="flex items-center text-slate-600">
+                    <div class="w-8 flex justify-center text-slate-400"><i class="fa-solid fa-envelope text-xs"></i></div>
+                    <a href="mailto:{{ site.data.contact.email }}" class="hover:text-blue-600 transition-colors">{{ site.data.contact.email }}</a>
+                </li>
+                <li class="flex items-start text-slate-600 leading-tight">
+                    <div class="w-8 flex justify-center text-slate-400 mt-1"><i class="fa-solid fa-location-dot text-xs"></i></div>
+                    <span>{{ site.data.contact.address }}</span>
+                </li>
             </ul>
         </div>
         <div class="p-8 pt-0">
