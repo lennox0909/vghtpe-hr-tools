@@ -3,7 +3,7 @@
 # TVGH HR Tools
 Feb 2026, `Leno` `Bing-Shi` `Tsai`
 
-## based on `Jekyll`
+## based on `Ruby` & `Jekyll`
 
 </div>
 
@@ -41,7 +41,7 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
 │
 ├── assets/                     # 🌐 global static (`DRY`)
 │   ├── css/
-│   │   └── style.css           # global style (Tailwind, scroll, drag...)
+│   │   └── input.css           # global style (Tailwind, scroll, drag...)
 │   └── js/
 │       ├── app.js              # w Navbar & Main Page
 │       └── shared/             # shared JS Core
