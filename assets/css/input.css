@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 人事室工具箱 - 全域樣式表 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+:root {
+    --navbar-height: 64px;
+    --subnav-height: 49px;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* --- 子網頁共用固定控制列與全螢幕工作區 (隨 navbar.html 高度自動調整) --- */
+.sticky-subnav {
+    position: sticky !important;
+    top: var(--navbar-height, 64px) !important;
+    z-index: 40 !important;
+}
+
+.subpage-workspace {
+    height: calc(100vh - var(--navbar-height, 64px) - var(--subnav-height, 49px)) !important;
+}
+
+/* 毛玻璃卡片效果 */
+.glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* 英雄區塊背景圖樣 */
+.hero-pattern {
+    background-color: #1e293b;
+    background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+/* 工作流步驟連接線 (僅在桌面端顯示) */
+.workflow-step::after {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
+}
+
+/* 隱藏最後一個步驟的連接線 */
+.workflow-step:last-child::after {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .workflow-step::after {
+        display: none;
+    }
+}
+
+/* 聯絡資訊彈窗 (Modal) 動畫狀態 */
+.modal-overlay {
+    transition: opacity 0.3s ease;
+}
+
+.modal-container {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.modal-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-hidden .modal-container {
+    transform: scale(0.9);
+    opacity: 0;
+}
+
+/* --- 編輯器共用樣式 (DRY) --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+/* 拖曳桿觸控優化 */
+#resizer {
+    touch-action: none;
+}
+/* 隱藏 textarea 預設輪廓 */
+textarea:focus {
+    outline: none;
+}

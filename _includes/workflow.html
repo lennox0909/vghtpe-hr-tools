@@ -17,7 +17,7 @@
         <!-- 迴圈改為讀取 include.data.steps -->
         {% for step in include.data.steps %}
         <div class="workflow-step relative text-center flex-1">
-            <div class="w-16 h-16 bg-{{ step.color_theme }} text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20">
+            <div class="w-16 h-16 {{ step.color_theme }} text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-20">
                 <i class="fa-solid {{ step.icon }} text-xl"></i>
             </div>
             <h4 class="font-bold text-slate-800 mb-2">{{ step.title }}</h4>

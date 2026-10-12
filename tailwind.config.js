@@ -1,0 +1,29 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./**/*.html",
+    "./**/*.md",
+    "./**/*.js",
+    "./_data/**/*.yml", // 讓 Tailwind 掃描 YAML 資料檔
+    "!./node_modules/**",
+    "!./_site/**"
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['"Noto Sans TC"', 'sans-serif'],
+      },
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          900: '#0c4a6e',
+        }
+      }
+    },
+  },
+  plugins: [],
+}

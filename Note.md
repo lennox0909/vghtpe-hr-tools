@@ -135,3 +135,125 @@ tree /F /A > project_structure.txt
 
 
 日常開發切換與建立分支時，全面使用 `git switch` 與 `git switch -c` 是目前最安全且現代化的做法；而 `git checkout` 依然完全保留向下相容，在舊腳本或跨分支抽取特定檔案時偶爾還是看得到它的身影。
+
+# 專案環境設定與開發筆記
+
+總而言之，在 `VS Code` 需開啟兩個 Terminal，一個跑 `node.js`，另一個跑 `ruby`。
+
+- node.js
+```bash
+npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch
+```
+
+- ruby
+```bash
+# 啟動本地端 Jekyll 伺服器進行預覽
+
+bundle exec jekyll serve
+
+# Server address: http://127.0.0.1:4000/
+```
+
+- 
+
+## 1. Tailwind CDN 改用 Tailwind 本地端編譯
+
+為了提升網頁載入速度並避免樣式閃爍 (FOUC)，將 Tailwind 從 CDN 載入改為本地編譯流程：
+
+*   **清理舊程式碼**：移除 HTML 檔案中的 `<script src="https://cdn.tailwindcss.com"></script>` 以及寫死在 HTML 內的 `<script> tailwind.config = { ... } </script>`。
+*   **建立 `tailwind.config.js`**：
+    透過 `npx tailwindcss init` 產生設定檔，設定 `content` 路徑以掃描專案內的 HTML/JS 檔案，並在此處統一定義自訂字體與主題色。
+*   **設定輸入檔 `input.css`**：
+    建立 Tailwind 的 CSS 進入點，包含三大核心指令：
+    ```css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+    /* 將所有全域的自訂 CSS (如 .glass-card) 寫在這裡 */
+    ```
+*   **注意版本差異**：因為 Tailwind v4 架構改變，建議指定安裝 v3 版本以確保與現有配置相容 (`npm install -D tailwindcss@3`)。
+
+## 2. 在 VS Code 安裝 Jekyll (Windows 環境)
+
+Jekyll 是基於 Ruby 的工具，並非 VS Code 擴充套件，需依序完成以下設定：
+
+*   **安裝 Ruby**：前往官網下載並安裝 [RubyInstaller for Windows (含 Devkit)]。
+*   **安裝編譯工具**：安裝過程中務必勾選 `MSYS2 development toolchain`，並在最後一步執行 `ridk install` 初始化設定。
+*   **全域安裝 Jekyll**：重啟 VS Code 後，在終端機執行 `gem install jekyll bundler`。
+*   **專案依賴安裝**：在專案根目錄確認有 `Gemfile` 後，執行 `bundle install`。
+
+## 3. 常用 Bash 指令總結
+
+**Node.js & Tailwind 相關：**
+*   `npm init -y`：初始化 npm 專案 (產生 package.json)。
+*   `npm install -D tailwindcss@3`：安裝 Tailwind CSS v3 作為開發依賴。
+*   `npx tailwindcss init`：產生 `tailwind.config.js` 設定檔。
+*   `npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch`：啟動 Tailwind 監聽編譯 (修改檔案時自動打包 CSS)。
+
+**Ruby & Jekyll 相關：**
+*   `gem install jekyll bundler`：全域安裝 Jekyll 與 Bundler 管理工具。
+*   `bundle install`：依照 `Gemfile` 安裝專案所需的所有 Ruby 套件 (Gems)。
+*   `bundle exec jekyll serve`：啟動本地端 Jekyll 伺服器進行預覽。
+
+## 4. 其他重要注意事項
+
+*   **自訂 CSS 撰寫原則**：
+    **永遠不要**手動修改打包輸出的 `style.css` (會被自動覆蓋)。所有的自訂全域樣式必須寫在 `input.css` 裡面，透過 Tailwind CLI 進行合併與編譯。
+*   **Git 忽略清單**：
+    確保 `.gitignore` 檔案中包含 `node_modules/`，避免將龐大的 npm 套件推送到 GitHub。
+*   **Gemfile 設定**：
+    如果遇到缺件錯誤 (如 `Could not find 'minima'`)，請確認專案根目錄的 `Gemfile` 中有宣告必要的套件：
+    ```ruby
+    source "https://rubygems.org"
+    gem "jekyll"
+    gem "minima" # 預設佈景主題
+    gem "webrick" # 新版 Ruby 可能需額外加入此伺服器套件
+    ```
+*   **雙終端機開發模式**：
+    開發時，需在 VS Code 開啟兩個終端機分頁：一個執行 Tailwind 的 `--watch` 自動編譯，另一個執行 `jekyll serve` 架設伺服器。
+
+
+# macOS 環境設定與開發筆記
+
+## 在 VS Code 安裝 Jekyll (macOS 環境)
+
+macOS 系統雖然內建 Ruby，但為了避免系統權限問題（例如常見的 `Gem::FilePermissionError`），強烈建議**不要**使用系統內建的 Ruby，而是透過 Homebrew 來安裝獨立的 Ruby 開發環境。請依照以下步驟在 VS Code 的終端機 (Terminal) 中進行設定：
+
+### 1. 安裝 Homebrew (若尚未安裝)
+Homebrew 是 macOS 必備的套件管理工具。若您的電腦還沒安裝，請在終端機貼上以下指令：
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### 2. 透過 Homebrew 安裝 Ruby
+使用 Homebrew 安裝最新版的 Ruby 開發環境：
+```bash
+brew install ruby
+```
+### 3. 設定環境變數 (非常重要)
+為了讓系統優先使用 Homebrew 安裝的 Ruby，而不是 macOS 內建的舊版 Ruby，需要將其路徑加入環境變數。請在終端機執行以下指令（以 macOS 預設的 `zsh` 為例）：
+```bash
+# 針對 Apple Silicon (M1/M2/M3) 晶片的 Mac：
+echo 'export PATH="/opt/homebrew/opt/ruby/bin:$PATH"' >> ~/.zshrc
+
+# 針對較舊的 Intel 晶片 Mac：
+# echo 'export PATH="/usr/local/opt/ruby/bin:$PATH"' >> ~/.zshrc
+
+# 重新載入設定檔讓變數立即生效：
+source ~/.zshrc
+```
+### 4. 安裝 Jekyll 與 Bundler
+確認 Ruby 環境切換成功後，即可全域安裝 Jekyll 與 Ruby 的套件管理工具 Bundler：
+```bash
+gem install jekyll bundler
+```
+### 5. 安裝專案套件並啟動
+確認您的 VS Code 終端機目前位於專案的根目錄（也就是有 `Gemfile` 的資料夾），接著執行：
+```bash
+# 根據 Gemfile 安裝專案所需的所有套件
+bundle install
+
+# 啟動本地端 Jekyll 伺服器進行預覽
+bundle exec jekyll serve
+```
