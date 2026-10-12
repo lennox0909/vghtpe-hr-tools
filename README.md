@@ -26,6 +26,15 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
         1. [台灣辦公日曆與計算機](https://hrms.leno-1.com/taiwan-holidays/)
         1. [臺北榮民總醫院人事室 PGY轉任住院醫師休假天數計算機)](https://hrms.leno-1.com/resident/)
 
+## 🚧 TO DO 
+
+- AI助理
+    - [x] User Guide
+    - [ ] 對話範例
+    - [ ] 排解疑難
+
+
+
 ## 🔧 Under the Hood
 
 - by principles `SRP`、`CARP` and `DRY`
@@ -50,6 +59,7 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
 │           └── theme.js        # Dark/Light Swith
 │
 ├── _data/                      # 🌐 Data Layer
+│   ├── contact.yml             # DevOps contact
 │   ├── links.yml               # External links
 │   ├── status.yml              # System status
 │   ├── tools.yml               # Tool Card Modal
