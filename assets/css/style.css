@@ -2010,14 +2010,13 @@ video {
   background-color: rgb(203 213 225 / var(--tw-bg-opacity, 1));
 }
 
-.bg-slate-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(148 163 184 / var(--tw-bg-opacity, 1));
-}
-
 .bg-slate-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(248 250 252 / var(--tw-bg-opacity, 1));
+}
+
+.bg-slate-50\/90 {
+  background-color: rgb(248 250 252 / 0.9);
 }
 
 .bg-slate-600 {
@@ -3751,10 +3750,6 @@ textarea:focus {
     display: flex;
   }
 
-  .md\:hidden {
-    display: none;
-  }
-
   .md\:h-5 {
     height: 1.25rem;
   }
@@ -3968,6 +3963,10 @@ textarea:focus {
 
   .lg\:inline {
     display: inline;
+  }
+
+  .lg\:hidden {
+    display: none;
   }
 
   .lg\:grid-cols-2 {
