@@ -150,20 +150,22 @@ title: 北榮人事室AI助理介紹
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
                     <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">1</div>
                     <h3 class="text-xl font-bold mb-3 text-slate-800">準備環境</h3>
-                    <p class="text-slate-600 leading-relaxed">建議使用 <strong>桌機或筆電的 Chrome 瀏覽器</strong> 以獲得最佳的 WebGPU 硬體加速支援。</p>
+                    <p class="text-slate-600 leading-relaxed">使用<strong>桌機或筆電的 Chrome 瀏覽器</strong>以獲得最佳的 WebGPU 硬體加速。</p>
+                    <span class="text-xs text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-flex items-center font-medium">
+                            本專案 WebGPU 目前不支援行動裝置，例如 iOS 與 Android 設備。
+                    </span>
                 </div>
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
                     <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">2</div>
                     
                     <div class="flex flex-wrap items-center gap-3 mb-3">
-                        <h3 class="text-xl font-bold text-slate-800">載入模型與資料</h3>
-                        <span class="text-xs text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-flex items-center font-medium">
-                            只需下載一次
-                        </span>
+                        <h3 class="text-xl font-bold text-slate-800">載入模型與人事資料</h3>
                     </div>
-                    
-                    <p class="text-slate-600 leading-relaxed">首次使用需於頁面上方點擊「載入」按鈕。請在網路順暢的環境下進行，系統將下載約 <strong>1.9GB</strong> 的輕量模型與資料至設備。</p>
+                    <p class="text-slate-600 leading-relaxed">首次使用需於頁面上方點擊 <strong>「下載並載入」</strong>按鈕。在網路順暢的環境下進行，系統將下載約 <strong>1.9GB</strong> 的輕量模型與人事資料到您使用的瀏覽器。</p>
+                    <span class="text-xs text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-flex items-center font-medium">
+                            只需下載一次
+                    </span>
                 </div>
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
@@ -173,35 +175,37 @@ title: 北榮人事室AI助理介紹
                 </div>
             </div>
 
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-16"></div>
+
             <div class="mb-12">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">貼心設計 就甘心</h2>
-                <p class="text-lg text-slate-600">盡力相容老舊設備</p>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">貼心設計💖就甘心</h2>
+                <!-- <p class="text-lg text-slate-600">盡力相容老舊設備</p> -->
             </div>
 
             <div class="flex flex-col lg:flex-row justify-between items-start gap-6 relative">
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
-                    <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">1</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-800">支援分段下載模型</h3>
-                    <p class="text-slate-600 leading-relaxed">...</p>
+                    <!-- <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">1</div> -->
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">分段下載 與 接力續傳</h3>
+                    <p class="text-slate-600 leading-relaxed">在網路不佳的環境中，或是您開啟了一堆瀏覽器分頁，導致下載卡頓現象，沒關係的！即使您重新開機再回到人事 AI 助理，系統會<strong>根據上次下載的進度接續下載</strong>，不浪費網路資源。</p>
                 </div>
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
-                    <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">2</div>
+                    <!-- <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">2</div> -->
                     
                     <div class="flex flex-wrap items-center gap-3 mb-3">
-                        <h3 class="text-xl font-bold text-slate-800">粗手指防呆</h3>
+                        <h3 class="text-xl font-bold text-slate-800">防手滑 節省算力</h3>
                         <span class="text-xs text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-flex items-center font-medium">
-                            爆走的Enter鍵
+                            Fat Finger
                         </span>
                     </div>
                     
-                    <p class="text-slate-600 leading-relaxed">...</p>
+                    <p class="text-slate-600 leading-relaxed">需 <strong>連續按下 4 次 Enter 鍵</strong>，或滑鼠點擊【送出】按鈕，才會把您的提問送到本地 AI 處理。使用普通辦公文書電腦，這種設計讓節省算力 / Token 的效果會更為顯著。</p>
                 </div>
 
                 <div class="flex-1 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full group hover:shadow-md transition-shadow">
-                    <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">3</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-800">大家來共用</h3>
-                    <p class="text-slate-600 leading-relaxed">...</p>
+                    <!-- <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform">3</div> -->
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">公用電腦 與 隱私防護</h3>
+                    <p class="text-slate-600 leading-relaxed">若單位使用公用電腦供同仁查詢，每一位同仁查詢結束後，可按下垃圾桶按鈕來<strong> 清除對話紀錄</strong>，一鍵清除瀏覽器中的對話紀錄。</p>
                 </div>
             </div>
         </section>
