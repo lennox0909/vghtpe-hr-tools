@@ -32,6 +32,7 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
     - [x] User Guide
     - [ ] 對話範例
     - [ ] 排解疑難
+    - [ ] Apply WebAssembly
 
 
 
