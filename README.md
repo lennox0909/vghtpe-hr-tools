@@ -10,14 +10,14 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
 ### 使用 `yml` 設定檔輕鬆管理網頁
 - 調整網頁元素與區塊
 - 調整排列順序
-- 調整`人事室 AI助理`可選用的模型
+- 調整`人事室 AI 客服助理`可選用的模型
 - 調整外部參考網頁URL
 
 
 
 ## 🎛️ 已建置工具：
 
-1. [台北榮總人事室 AI助理](https://hrms.leno-1.com/web-LLM/)
+1. [台北榮總人事室 AI 客服助理](https://hrms.leno-1.com/web-LLM/)
 1. [台北榮總人事室 圖表編輯器](https://hrms.leno-1.com/diagram/)
 1. [台北榮總人事室 心智圖即時編輯器](https://hrms.leno-1.com/mindmap/)
 
