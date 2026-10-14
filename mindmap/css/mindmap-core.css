@@ -1,11 +1,35 @@
-/* 確保 Markmap 連線正確顯示 */
-.markmap-link { fill: none; }
+/* 確保 Markmap 連線正確顯示，並忽略滑鼠事件以免遮擋下方的節點圓圈 */
+.markmap-link {
+    fill: none;
+    pointer-events: none !important;
+}
 
-/* 讓節點圓圈更明顯 */
-svg#mindmap .markmap-node circle {
+/* 讓節點文字外框穿透，但明確排除 KaTeX 公式，避免排版與渲染崩潰 */
+svg#mindmap foreignObject {
+    overflow: visible;
+    pointer-events: none !important;
+}
+
+svg#mindmap foreignObject div {
+    pointer-events: none !important;
+}
+
+svg#mindmap foreignObject a,
+svg#mindmap foreignObject input,
+svg#mindmap foreignObject button,
+svg#mindmap foreignObject .katex,
+svg#mindmap foreignObject .katex * {
+    pointer-events: auto !important;
     cursor: pointer;
+}
+
+/* 讓節點圓圈更明顯，並強制確保能接收所有點擊事件 */
+svg#mindmap .markmap-node circle {
+    cursor: pointer !important;
+    pointer-events: all !important;
     transition: r 0.2s ease;
 }
+
 svg#mindmap .markmap-node circle:hover {
     r: 6px;
 }

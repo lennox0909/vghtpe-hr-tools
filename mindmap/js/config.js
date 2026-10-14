@@ -11,7 +11,6 @@ export const DOM = {
     btnZoomOut: document.getElementById('btn-zoom-out'),
     fitText: document.getElementById('fit-text'),
     btnDownload: document.getElementById('btn-download'),
-    btnDownloadSvg: document.getElementById('btn-download-svg'),
     btnDownloadMd: document.getElementById('btn-download-md'),
     saveStatus: document.getElementById('save-status'),
     btnClearEditor: document.getElementById('btn-clear-editor'),

@@ -42,7 +42,7 @@ func buildHtml(this js.Value, args []js.Value) any {
 
 	endTag := "</script>"
 
-	// 3. 準備 HTML 模板 (已移除所有 JS 的反引號)
+	// 3. 準備 HTML 模板
 	htmlTemplate := `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -53,9 +53,9 @@ func buildHtml(this js.Value, args []js.Value) any {
         (function() {
             try {
                 var path = decodeURIComponent(window.location.pathname || '');
-                var file = path.split('/').pop().split('\\').pop();
-                if (file && /\.html?$/i.test(file)) {
-                    document.title = file.replace(/\.html?$/i, '');
+                var file = path.split('/').pop().split('\\\\').pop();
+                if (file && /\\.html?$/i.test(file)) {
+                    document.title = file.replace(/\\.html?$/i, '');
                 }
             } catch (e) {}
         })();
@@ -68,9 +68,11 @@ func buildHtml(this js.Value, args []js.Value) any {
     <style>
         body { margin: 0; overflow: hidden; background: #ffffff; font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif; }
         svg#mindmap { width: 100vw; height: 100vh; display: block; }
-        .markmap-link { fill: none; }
-        .markmap-node circle { cursor: pointer; }
-        foreignObject { overflow: visible; }
+        .markmap-link { fill: none; pointer-events: none !important; }
+        foreignObject { overflow: visible; pointer-events: none !important; }
+        foreignObject div { pointer-events: none !important; }
+        foreignObject a, foreignObject input, foreignObject button, foreignObject .katex, foreignObject .katex * { pointer-events: auto !important; cursor: pointer; }
+        .markmap-node circle { cursor: pointer !important; pointer-events: all !important; }
     </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
@@ -148,13 +150,13 @@ func buildHtml(this js.Value, args []js.Value) any {
             if (!svgEl || typeof window.renderMathInElement !== "function") return;
             const nodes = svgEl.querySelectorAll("foreignObject div");
             nodes.forEach((node) => {
-                if (node.textContent && (node.textContent.includes("$") || node.textContent.includes("\\(") || node.textContent.includes("\\["))) {
+                if (node.textContent && (node.textContent.includes("$") || node.textContent.includes("\\\\(") || node.textContent.includes("\\\\["))) {
                     window.renderMathInElement(node, {
                         delimiters: [
                             { left: "$$", right: "$$", display: true },
                             { left: "$", right: "$", display: false },
-                            { left: "\\(", right: "\\)", display: false },
-                            { left: "\\[", right: "\\]", display: true }
+                            { left: "\\\\(", right: "\\\\)", display: false },
+                            { left: "\\\\[", right: "\\\\]", display: true }
                         ],
                         throwOnError: false,
                         strict: false

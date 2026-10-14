@@ -54,18 +54,7 @@ export const initFileIO = (cmEditor, debounceUpdateCallback) => {
         saveFile(blob, 'markmap-mindmap.txt', 'TXT 純文字檔', { 'text/plain': ['.txt'] });
     });
 
-    // 2. 下載 SVG 圖片
-    DOM.btnDownloadSvg.addEventListener('click', () => {
-        const clone = DOM.svgEl.cloneNode(true);
-        const style = document.createElement('style');
-        style.textContent = `.markmap-link{fill:none}.markmap-node circle{cursor:pointer}foreignObject{overflow:visible}svg{background-color:#fff;font-family:sans-serif}`;
-        clone.insertBefore(style, clone.firstChild);
-        if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        const blob = new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' });
-        saveFile(blob, 'markmap-mindmap.svg', 'SVG 圖片', { 'image/svg+xml': ['.svg'] });
-    });
-
-    // 3. 下載互動式 HTML (已改用 Go Wasm 加速字串處理)
+    // 2. 下載互動式 HTML (已改用 Go Wasm 加速字串處理)
     DOM.btnDownload.addEventListener('click', () => {
         if (!isWasmReady || typeof window.goBuildHtml !== 'function') {
             showModal('系統提示', 'HTML 匯出引擎尚未載入完成，請稍候再試。', { isAlert: true });
@@ -99,7 +88,7 @@ export const initFileIO = (cmEditor, debounceUpdateCallback) => {
         saveFile(buildHtml, defaultFilename, 'HTML', { 'text/html': ['.html'] });
     });
 
-    // 4. 匯入檔案 (僅供線上編輯器使用)
+    // 3. 匯入檔案 (僅供線上編輯器使用)
     DOM.btnImportFile.addEventListener('click', () => DOM.fileImport.click());
     DOM.fileImport.addEventListener('change', (e) => {
         const file = e.target.files[0];
