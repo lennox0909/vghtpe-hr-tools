@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // 讓暗黑模式透過切換 'dark' class 來觸發
-  darkMode: 'class', 
+  darkMode: 'class',
   content: [
     "./**/*.html",
     "./**/*.md",
@@ -13,7 +12,24 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // 合併 diagram 專屬的排版設定：移除行內程式碼預設的前後反引號
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        }
+      },
+      fontFamily: {
+        sans: ['"Noto Sans TC"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       typography: {
         DEFAULT: {
           css: {
