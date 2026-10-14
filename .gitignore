@@ -53,3 +53,8 @@ $RECYCLE.BIN/
 # 專案自訂忽略檔案
 # =========================
 project_structure.txt
+# =========================
+# 密資料與後端原始碼 (已移至 Private Repo)
+# =========================
+web-LLM/data/faq.json
+web-LLM/data/search.go

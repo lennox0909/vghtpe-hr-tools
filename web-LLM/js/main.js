@@ -13,19 +13,10 @@ const ASKED_CACHE_KEY = 'vghtpe_hr_asked_questions';
 let askedQuestions = new Set(); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 抓取目前網頁網址列上的 ?v= 參數
-    const urlParams = new URLSearchParams(window.location.search);
-    // 若網址沒有參數，則給予預設值 (例如 '1.0')，讓平時能正常使用快取
-    const version = urlParams.get('v') || '1.0'; 
-    
-    // 2. 取得基礎網址，並將參數附加到請求網址後方
-    const baseUrl = window.FAQ_DATA_URL || './data/faq.json';
-    const dataUrl = `${baseUrl}?v=${version}`;
-    
-    initKnowledgeBase(dataUrl);
+    // FAQ JSON 讀取與版本控制已移至 Wasm，此處僅初始化 Worker
+    initKnowledgeBase();
 });
 
-// 動態翻譯 Web-LLM 的英文進度提示
 function translateProgress(text) {
     if (!text) return "";
     let t = text;
@@ -50,9 +41,6 @@ async function loadModel() {
     DOM.settingsPanel.classList.add('hidden');
     clearMessagesDOM();
     
-    // ==========================================
-    // 從瀏覽器快取還原對話與「已問過的問題」清單
-    // ==========================================
     const savedHistory = localStorage.getItem(CACHE_KEY);
     const savedAsked = localStorage.getItem(ASKED_CACHE_KEY);
 
@@ -66,8 +54,6 @@ async function loadModel() {
                     appendMessageToDOM('assistant', msg.content);
                 }
             });
-            
-            // 還原已問過的問題紀錄
             if (savedAsked) {
                 askedQuestions = new Set(JSON.parse(savedAsked));
             }
@@ -125,19 +111,18 @@ async function sendMessage(isContinue = false) {
         appendMessageToDOM('user', text);
     }
     
-    // 記憶瘦身
     if (messageHistory.length > 7) {
         messageHistory = [messageHistory[0], ...messageHistory.slice(-6)];
     }
 
-    // 將提問存入歷史陣列與「已問清單」中，並同步快取
     messageHistory.push({ role: 'user', content: text });
     askedQuestions.add(text); 
     
     localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
     localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
     
-    const searchResult = searchRelevantQA(text);
+    // 【修改點】加入 await 等待 Wasm Worker 非同步檢索結果
+    const searchResult = await searchRelevantQA(text);
     const context = searchResult.context;
     const suggestedQuestions = searchResult.questions;
     const isExactMatch = searchResult.isExactMatch;
@@ -175,13 +160,9 @@ async function sendMessage(isContinue = false) {
             scrollToBottom();
         }
         
-        // ==========================================
-        // 氣泡按鈕動態渲染 (加入過濾機制與瞬間解答)
-        // ==========================================
         if (suggestedQuestions && suggestedQuestions.length > 0) {
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
             
-            // 【核心邏輯】：決定要顯示哪些按鈕
             let displayQuestions = suggestedQuestions;
             if (!isAskingToChoose) {
                 displayQuestions = suggestedQuestions.filter(opt => !askedQuestions.has(opt));
@@ -208,23 +189,19 @@ async function sendMessage(isContinue = false) {
                     
                     btn.textContent = opt;
                     
-                    // 【修改這裡】：攔截按鈕點擊事件，直接繞過 LLM 渲染解答
-                    btn.onclick = () => {
-                        const exactMatch = getExactFAQ(opt);
+                    // 【修改點】改為 async function 以等待 Wasm Worker 查詢結果
+                    btn.onclick = async () => {
+                        const exactMatch = await getExactFAQ(opt);
                         
                         if (exactMatch) {
-                            // 1. 直接將使用者的問題印在畫面上
                             appendMessageToDOM('user', opt);
                             
-                            // 2. 組合完美解答 (包含原本的 type 與 regulation)
                             let replyText = exactMatch.a;
                             if (exactMatch.type) replyText += `\n\n📍 案件類別：${exactMatch.type}`;
                             if (exactMatch.regulation) replyText += `\n📜 法規依據：${exactMatch.regulation}`;
                             
-                            // 3. 瞬間印出 AI 的答案
                             appendMessageToDOM('assistant', replyText);
                             
-                            // 4. 更新歷史對話紀錄與「已問過」清單，確保重整後記憶還在
                             messageHistory.push({ role: 'user', content: opt });
                             messageHistory.push({ role: 'assistant', content: replyText });
                             askedQuestions.add(opt);
@@ -233,7 +210,6 @@ async function sendMessage(isContinue = false) {
                             localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
                             
                         } else {
-                            // 防呆機制：萬一沒找到對應資料，退回原本交給 LLM 處理的流程
                             DOM.chatInput.value = opt;
                             DOM.chatInput.dispatchEvent(new Event('input'));
                             DOM.sendBtn.click();
@@ -264,35 +240,26 @@ async function sendMessage(isContinue = false) {
     }
 }
 
-// 【新增】清除對話與快取的邏輯
 function clearChatHistory() {
     if (!confirm('確定要清除所有對話紀錄與記憶嗎？')) return;
 
-    // 1. 清除 LocalStorage
     localStorage.removeItem(CACHE_KEY);
     localStorage.removeItem(ASKED_CACHE_KEY);
 
-    // 2. 重置變數
     messageHistory = [ { role: 'system', content: SYSTEM_PROMPT } ];
     askedQuestions.clear();
-
-    // 3. 清理對話畫面
     clearMessagesDOM();
 
-    // 4. 根據狀態顯示適當的畫面
     if (status === 'ready') {
-        // 若模型還醒著，直接顯示重置後的歡迎詞
         const selectedModel = DOM.modelSelect.value;
         const welcomeText = `對話記憶已清除 🗑️\n\n您好！我是**「北榮人事室 AI 助理」**。 👋\n\n模型（**${selectedModel}**）已準備就緒。請問今天有什麼我可以協助您的嗎？`;
         appendMessageToDOM('assistant', welcomeText);
         scrollToBottom();
     } else {
-        // 若模型尚未載入，顯示初始空狀態畫面
         DOM.emptyState.classList.remove('hidden');
     }
 }
 
-// 事件綁定
 DOM.loadBtn.addEventListener('click', loadModel);
 DOM.clearBtn.addEventListener('click', clearChatHistory);
 DOM.sendBtn.addEventListener('click', () => status === 'generating' ? engine?.interruptGenerate() : sendMessage());
