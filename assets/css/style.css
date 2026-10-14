@@ -656,10 +656,6 @@ video {
   left: 50%;
 }
 
-.left-4 {
-  left: 1rem;
-}
-
 .right-0 {
   right: 0px;
 }
@@ -698,6 +694,10 @@ video {
 
 .left-1 {
   left: 0.25rem;
+}
+
+.left-4 {
+  left: 1rem;
 }
 
 .-z-10 {
