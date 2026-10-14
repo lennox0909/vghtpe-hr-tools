@@ -1,29 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // 讓暗黑模式透過切換 'dark' class 來觸發
+  darkMode: 'class', 
   content: [
     "./**/*.html",
     "./**/*.md",
     "./**/*.js",
-    "./_data/**/*.yml", // 讓 Tailwind 掃描 YAML 資料檔
+    "./**/*.go",
+    "./_data/**/*.yml",
     "!./node_modules/**",
     "!./_site/**"
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['"Noto Sans TC"', 'sans-serif'],
-      },
-      colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          900: '#0c4a6e',
+      // 合併 diagram 專屬的排版設定：移除行內程式碼預設的前後反引號
+      typography: {
+        DEFAULT: {
+          css: {
+            'code::before': { content: 'none' },
+            'code::after': { content: 'none' }
+          }
         }
       }
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

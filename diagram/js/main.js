@@ -2,7 +2,7 @@ import { DOM, STORAGE_KEY } from './config.js';
 import { initTheme } from './theme.js';
 import { initLayout } from './layout.js';
 import { initFileIO } from './file-io.js';
-import { renderContent } from './renderer.js';
+import { renderContent, initWasm } from './renderer.js';
 
 async function loadDefaultContent() {
     try {
@@ -10,7 +10,7 @@ async function loadDefaultContent() {
         if (!response.ok) throw new Error('無法讀取 sample.md');
         return await response.text();
     } catch (err) {
-        return `# 歡迎使用台北榮總人事室圖表編輯器\n\n這是一個支援 Markdown 與 Mermaid 圖表的即時編輯器，您可以直接在左側修改程式碼，右側會即時顯示結果。\n\n## 範例：系統架構圖\n\n\`\`\`mermaid\ngraph TD;\n    A[人事室] --> B(排班系統);\n    A --> C(差勤系統);\n    B --> D{審核機制};\n    C --> D;\n    D -->|通過| E[資料歸檔];\n    D -->|退回| F[重新提交];\n\`\`\`\n`;
+        return `# 歡迎使用台北榮總人事室圖表編輯器\n\n這是一個支援 Markdown 與 Mermaid 圖表的即時編輯器，您可以直接在左側修改程式碼，右側會即時顯示結果。\n`;
     }
 }
 
@@ -19,7 +19,9 @@ async function init() {
     initLayout();
     initFileIO(renderContent);
 
-    // 載入初始資料（若 LocalStorage 為空字串或不存在，皆自動載入預設範例）
+    // 關鍵：等待 Wasm 載入完成，再進行後續的初始化與渲染
+    await initWasm();
+
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved.trim() !== '') {
         DOM.editor.value = saved;
@@ -29,7 +31,6 @@ async function init() {
     
     renderContent();
 
-    // 編輯器防抖動監聽 (Debounce)
     let timer;
     DOM.editor.addEventListener('input', () => {
         clearTimeout(timer);
@@ -41,7 +42,6 @@ async function init() {
         }, 400);
     });
 
-    // 清空按鈕
     DOM.clearBtn.addEventListener('click', () => {
         if(DOM.editor.value === '') return;
         if(confirm('確定要清空編輯器嗎？')){
@@ -53,7 +53,6 @@ async function init() {
     });
 }
 
-// 確保 marked.js 載入後再初始化
 if(window.marked) {
     init();
 } else {
