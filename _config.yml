@@ -6,3 +6,8 @@ url: "https://hrms.leno-1.com"
 # 請將下方改為你的 GitHub 儲存庫名稱 (注意最前面一定要有斜線)
 # baseurl: "/vghtpe-hr-tools"
 baseurl: ""
+
+# 略過 Sass 的過時警告
+sass:
+  style: compressed
+  quiet_deps: true
