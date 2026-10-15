@@ -70,9 +70,12 @@ func buildHtml(this js.Value, args []js.Value) any {
         svg#mindmap { width: 100vw; height: 100vh; display: block; }
         .markmap-link { fill: none; pointer-events: none !important; }
         foreignObject { overflow: visible; pointer-events: none !important; }
-        /* 修復 Safari WebKit foreignObject 座標脫離問題 */
-        foreignObject > div { pointer-events: none !important; position: relative; transform: translateZ(0); -webkit-transform: translateZ(0); }
+        foreignObject div { pointer-events: none !important; }
         foreignObject a, foreignObject input, foreignObject button, foreignObject .katex, foreignObject .katex * { pointer-events: auto !important; cursor: pointer; }
+        /* 根治 Safari WebKit foreignObject 公式脫離節點問題 */
+        foreignObject .katex-html { display: none !important; }
+        foreignObject .katex-mathml { position: static !important; clip: auto !important; clip-path: none !important; height: auto !important; width: auto !important; overflow: visible !important; display: inline-block !important; font-size: 1.15em; }
+        foreignObject .katex-display .katex-mathml { display: block !important; text-align: center; margin: 0.5em 0; }
         .markmap-node circle { cursor: pointer !important; pointer-events: all !important; }
     </style>
 </head>
