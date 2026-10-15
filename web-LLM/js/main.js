@@ -97,6 +97,69 @@ async function loadModel() {
     }
 }
 
+// 統一管理氣泡建議按鈕的動態渲染與點擊事件
+function renderSuggestedButtons(aiTextBlock, suggestedQuestions, isAskingToChoose) {
+    if (!suggestedQuestions || suggestedQuestions.length === 0) return;
+
+    let displayQuestions = suggestedQuestions;
+    if (!isAskingToChoose) {
+        displayQuestions = suggestedQuestions.filter(opt => !askedQuestions.has(opt));
+    }
+
+    if (displayQuestions.length === 0) return;
+
+    const btnContainer = document.createElement('div');
+    btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
+
+    if (isAskingToChoose) {
+        aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
+    } else {
+        const hint = document.createElement('div');
+        hint.className = "text-xs text-slate-400 font-medium mb-1";
+        hint.textContent = "💡 您可能也想了解：";
+        btnContainer.appendChild(hint);
+    }
+
+    displayQuestions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = isAskingToChoose 
+            ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal"
+            : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
+        
+        btn.textContent = opt;
+        
+        // 點擊建議按鈕時，直接向 Wasm Worker 抓取標準答案瞬間輸出，繞過 LLM 推論
+        btn.onclick = async () => {
+            const exactMatch = await getExactFAQ(opt);
+            
+            if (exactMatch) {
+                appendMessageToDOM('user', opt);
+                
+                let replyText = exactMatch.a;
+                if (exactMatch.type) replyText += `\n\n📍 案件類別：${exactMatch.type}`;
+                if (exactMatch.regulation) replyText += `\n📜 法規依據：${exactMatch.regulation}`;
+                
+                appendMessageToDOM('assistant', replyText);
+                
+                messageHistory.push({ role: 'user', content: opt });
+                messageHistory.push({ role: 'assistant', content: replyText });
+                askedQuestions.add(opt);
+                
+                localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
+                localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
+            } else {
+                DOM.chatInput.value = opt;
+                DOM.chatInput.dispatchEvent(new Event('input'));
+                DOM.sendBtn.click();
+            }
+        };
+        btnContainer.appendChild(btn);
+    });
+
+    aiTextBlock.parentElement.appendChild(btnContainer);
+    scrollToBottom();
+}
+
 async function sendMessage(isContinue = false) {
     let text = isContinue ? "請繼續未完成的回覆" : DOM.chatInput.value.trim();
     if (!isContinue) {
@@ -121,21 +184,35 @@ async function sendMessage(isContinue = false) {
     localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
     localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
     
-    // 【修改點】加入 await 等待 Wasm Worker 非同步檢索結果
+    // 等待 Wasm Worker 非同步檢索結果
     const searchResult = await searchRelevantQA(text);
-    const context = searchResult.context;
-    const suggestedQuestions = searchResult.questions;
+    const context = searchResult.context || "";
+    const suggestedQuestions = searchResult.questions || [];
     const isExactMatch = searchResult.isExactMatch;
-    
+
+    // =========================================================================
+    // 【攔截機制】：簡短關鍵字且命中多筆 FAQ 時，直接由前端 0 秒渲染選項按鈕！
+    // 避免小模型在串流時把內部 Prompt 背出來，並省下等待模型生成的時間。
+    // =========================================================================
+    const cleanQueryLen = text.replace(/[?？!！,，.。~～\s]/g, '').length;
+    const isShortKeywordQuery = !isExactMatch && suggestedQuestions.length > 1 && cleanQueryLen <= 10;
+
+    if (!isContinue && isShortKeywordQuery) {
+        const directReply = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
+        const aiTextBlock = appendMessageToDOM('assistant', directReply);
+        renderSuggestedButtons(aiTextBlock, suggestedQuestions, true);
+        
+        messageHistory.push({ role: 'assistant', content: directReply });
+        localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
+        return;
+    }
+
+    // 組合精簡版 Prompt，避免複雜規則誘發 1B/2B 小模型複誦
     let promptForModel = text;
     if (context !== "") {
-        if (isExactMatch) {
-            promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n請依據【內部參考資訊】給出精準解答，直接回覆答案，絕對不要詢問使用者想了解哪一項。`;
-        } else {
-            promptForModel = `【內部參考資訊】\n${context}\n\n【使用者提問】\n${text}\n\n【系統回答限制與策略】\n請絕對遵守以下規則回答：\n1. 檢視上述【使用者提問】，若只有簡短的關鍵字且對應多筆資料，請「只能」回覆這句話：「為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：」，絕對不可以加上任何其他文字、網址連結或 HTML 符號。\n2. 若使用者的提問非常明確指出特定情境，請依據參考資訊給出精準解答。`;
-        }
+        promptForModel = `請根據以下參考資料，直接用繁體中文回答「使用者問題」。切勿複誦參考資料的標題或格式。\n\n${context}使用者問題：${text}`;
     } else {
-        promptForModel = `【使用者提問】\n${text}\n\n(系統強制提示：若此提問是在選擇上一輪對話的選項，請依據上文的【內部參考資訊】回答；若此提問是全新的無關問題，請直接回覆「很抱歉，人事知識庫中無此規定，請向專員洽詢。」)`;
+        promptForModel = `使用者問題：${text}\n\n(系統提示：目前知識庫無匹配資料。若此問題並非延續上一輪對話，請直接回覆：「很抱歉，我目前的知識庫中沒有關於此問題的規定。您可以換個關鍵字搜尋，或是直接撥打 02-2875-7019 向人事室洽詢。」)`;
     }
 
     const currentMessages = [...messageHistory];
@@ -154,73 +231,35 @@ async function sendMessage(isContinue = false) {
         });
 
         let fullReply = "";
+        let leakedPrompt = false;
+
         for await (const chunk of chunks) {
             fullReply += chunk.choices[0]?.delta?.content || "";
+            
+            // 串流防洩漏守門員：若小模型開始背誦內部標籤，立即中斷並切換為按鈕選單
+            if (
+                fullReply.includes("【系統") || 
+                fullReply.includes("【內部參考資訊】") || 
+                fullReply.includes("--- [資料") ||
+                fullReply.includes("--- [精準命中") ||
+                fullReply.includes("請點擊下方按鈕選擇")
+            ) {
+                leakedPrompt = true;
+                engine?.interruptGenerate();
+                break;
+            }
+
             aiTextBlock.textContent = fullReply;
             scrollToBottom();
         }
         
-        if (suggestedQuestions && suggestedQuestions.length > 0) {
+        if (leakedPrompt && suggestedQuestions.length > 0) {
+            fullReply = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
+            aiTextBlock.textContent = fullReply;
+            renderSuggestedButtons(aiTextBlock, suggestedQuestions, true);
+        } else if (suggestedQuestions.length > 0) {
             const isAskingToChoose = fullReply.includes("點擊下方按鈕") || fullReply.includes("為您找到以下相關規定");
-            
-            let displayQuestions = suggestedQuestions;
-            if (!isAskingToChoose) {
-                displayQuestions = suggestedQuestions.filter(opt => !askedQuestions.has(opt));
-            }
-
-            if (displayQuestions.length > 0) {
-                const btnContainer = document.createElement('div');
-                btnContainer.className = "flex flex-col gap-2 mt-3 w-full border-t border-slate-600/50 pt-3";
-
-                if (isAskingToChoose) {
-                    aiTextBlock.textContent = "為您找到以下相關規定，請點擊下方按鈕選擇您具體想了解的項目：";
-                } else {
-                    const hint = document.createElement('div');
-                    hint.className = "text-xs text-slate-400 font-medium mb-1";
-                    hint.textContent = "💡 您可能也想了解：";
-                    btnContainer.appendChild(hint);
-                }
-
-                displayQuestions.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = isAskingToChoose 
-                        ? "text-left text-sm bg-blue-700/50 hover:bg-blue-600 border border-blue-500 text-blue-50 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal"
-                        : "text-left text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-xl shadow-sm transition-colors active:scale-95 break-words whitespace-normal";
-                    
-                    btn.textContent = opt;
-                    
-                    // 【修改點】改為 async function 以等待 Wasm Worker 查詢結果
-                    btn.onclick = async () => {
-                        const exactMatch = await getExactFAQ(opt);
-                        
-                        if (exactMatch) {
-                            appendMessageToDOM('user', opt);
-                            
-                            let replyText = exactMatch.a;
-                            if (exactMatch.type) replyText += `\n\n📍 案件類別：${exactMatch.type}`;
-                            if (exactMatch.regulation) replyText += `\n📜 法規依據：${exactMatch.regulation}`;
-                            
-                            appendMessageToDOM('assistant', replyText);
-                            
-                            messageHistory.push({ role: 'user', content: opt });
-                            messageHistory.push({ role: 'assistant', content: replyText });
-                            askedQuestions.add(opt);
-                            
-                            localStorage.setItem(CACHE_KEY, JSON.stringify(messageHistory));
-                            localStorage.setItem(ASKED_CACHE_KEY, JSON.stringify([...askedQuestions]));
-                            
-                        } else {
-                            DOM.chatInput.value = opt;
-                            DOM.chatInput.dispatchEvent(new Event('input'));
-                            DOM.sendBtn.click();
-                        }
-                    };
-                    btnContainer.appendChild(btn);
-                });
-
-                aiTextBlock.parentElement.appendChild(btnContainer);
-                scrollToBottom();
-            }
+            renderSuggestedButtons(aiTextBlock, suggestedQuestions, isAskingToChoose);
         }
         
         messageHistory.push({ role: 'assistant', content: fullReply });
@@ -228,8 +267,10 @@ async function sendMessage(isContinue = false) {
         
     } catch (err) {
         if (err.message?.toLowerCase().includes('abort')) {
-            aiTextBlock.textContent += " ⏹️ [已停止]";
-            wasInterrupted = true;
+            if (!aiTextBlock.textContent.includes("為您找到以下相關規定")) {
+                aiTextBlock.textContent += " ⏹️ [已停止]";
+                wasInterrupted = true;
+            }
         } else {
             console.error(err);
             aiTextBlock.textContent = `❌ 發生錯誤，無法生成回覆。\n(錯誤代碼: ${err.message})`;

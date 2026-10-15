@@ -9,7 +9,7 @@ auto-reply:
     - title: WebGPU 地端輕量模型
       icon: fa-microchip
       color_theme: bg-blue-600
-      description: 採用 Google Gemma 2 等開源輕量模型，透過 WebGPU 硬體加速，一般行政文書電腦即可流暢執行本地推論。
+      description: 採用 880 MB ~ 1.9 GB  等開源輕量模型，透過 WebGPU 硬體加速，一般行政文書電腦即可流暢執行本地推論。
 
     - title: 人事 FAQ 知識庫同步
       icon: fa-database

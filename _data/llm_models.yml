@@ -1,5 +1,8 @@
-# - value: "Llama-3.1-8B-Instruct-q4f16_1-MLC"
-#   label: "Llama 3.1 8B (中文優良, 約 4.6GB)"
+# - value: "gemma-3-1b-it-q4f16_1-MLC"
+#   label: "Gemma 3 1B (極速超輕量, 約 710MB)"
+
+- value: "Llama-3.2-1B-Instruct-q4f16_1-MLC"
+  label: "Llama 3.2 1B (Meta 超輕量, 約 880MB)"
 
 - value: "gemma-2-2b-it-q4f16_1-MLC"
   label: "Gemma 2 2B (最新輕量, 約 1.9GB)"

@@ -1,4 +1,4 @@
-import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm@latest";
 
 export async function initEngine(modelName, progressCallback) {
     if (!navigator.gpu) throw new Error("需要 WebGPU 支援才能執行模型！");
