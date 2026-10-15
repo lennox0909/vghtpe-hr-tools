@@ -35,3 +35,9 @@
   icon: fa-wand-magic-sparkles
   color_theme: indigo
   description: 115年版本
+
+- title: 計劃型契約工作小組人事費用計算機
+  url: ./payment-calc-by-plan/
+  icon: fa-wand-magic-sparkles
+  color_theme: indigo
+  description: 115年版本
