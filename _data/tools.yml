@@ -8,21 +8,21 @@
   url: ./diagram/
   icon: fa-code-branch
   color_theme: blue
-  badge: "新增支援 LaTeX 數學公式與科學排版 (KaTeX)"
-  description: 使用 Mermaid 程式碼定義業務流程圖實作，確保作業流程圖同步更新。
+  badge: "prompt：依照我提供的圖片或敘述，幫我生成 Mermaid 流程圖。<br><br>使用您的免費 AI 來製作專業圖表"
+  description: 支援 Mermaid、Markdown、KaTeX 程式碼，輕鬆繪製專業流程圖。
 
 - title: 心智圖即時編輯器
   url: ./mindmap/
   icon: fa-brain
   color_theme: indigo
-  badge: "新增支援 LaTeX 數學公式與科學排版 (KaTeX)"
-  description: 基於 Markmap 技術的動態心智圖。適合業務模組化思考與架構拆解，支援 Markdown 即時編輯與轉換。
+  badge: "個人、團隊協作。腦力激盪、激發創意、梳理邏輯、視覺化摘要。支援代理式 AI。"
+  description: 下載您的HTML心智圖，豐富您的會議簡報！使用簡單的 Markdown 語法，即可使用動態心智圖 Mindmap 技術。
 
 - title: 台灣辦公日曆與計算機
   url: ./taiwan-holidays/
   icon: fa-regular fa-calendar-days
   color_theme: indigo
-  description: 中華民國政府行政機關辦公日曆表
+  description: 中華民國政府行政機關辦公日曆表【需連線使用】
 
 - title: PGY轉任住院醫師休假天數計算機
   url: ./resident/
@@ -34,10 +34,10 @@
   url: ./payment-calc/
   icon: fa-wand-magic-sparkles
   color_theme: indigo
-  description: 115年版本
+  description: 115年版本【需連線使用】
 
 - title: 計劃型契約工作小組人事費用計算機
   url: ./payment-calc-by-plan/
   icon: fa-wand-magic-sparkles
   color_theme: indigo
-  description: 115年版本
+  description: 115年版本【需連線使用】
