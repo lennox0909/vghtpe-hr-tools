@@ -1,11 +1,19 @@
-import { checkDateStatus, formatDateStr } from './api.js';
+import { holidayData, checkDateStatus, formatDateStr } from './api.js';
 
 let calcCache = JSON.parse(localStorage.getItem('tw_holiday_calc_results') || '{}');
 
 export function renderYearlySummary() {
     const grid = document.getElementById('yearly-summary-grid');
     grid.innerHTML = '';
-    for (let year = 2017; year <= 2026; year++) {
+
+    // 自動從 holidayData 偵測最大年份 (例如 2027)
+    const years = Object.keys(holidayData).map(d => parseInt(d.substring(0, 4))).filter(y => !isNaN(y));
+    const maxYear = years.length ? Math.max(...years) : 2027;
+
+    const titleEl = document.getElementById('yearly-summary-title');
+    if (titleEl) titleEl.textContent = `歷年工作日總覽 (2017-${maxYear})`;
+
+    for (let year = 2017; year <= maxYear; year++) {
         let workDays = calcCache[`${year}-01-01_${year}-12-31`]?.workDays || 0;
         if (!workDays) {
             let d = new Date(year, 0, 1), end = new Date(year, 11, 31);

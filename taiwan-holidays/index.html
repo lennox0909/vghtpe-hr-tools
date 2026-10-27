@@ -77,7 +77,8 @@ title: 台灣辦公日曆與計算機
             <!-- 歷年統計 -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6">
                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-bar text-indigo-500"></i> 歷年工作日總覽 (2017-2026)
+                    <i class="fa-solid fa-chart-bar text-indigo-500"></i>
+                    <span id="yearly-summary-title">歷年工作日總覽 (2017-2027)</span>
                 </h3>
                 <div id="yearly-summary-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     <div class="col-span-full text-center py-4 text-slate-400 text-sm">
@@ -185,5 +186,5 @@ title: 台灣辦公日曆與計算機
 </div>
 
 <!-- 傳入 CSV 路徑並載入 JS -->
-<script>window.TAIWAN_HOLIDAY_DATA_URL = 'https://lennox0909.github.io/taiwan-holidays/data/holiday_data.csv';</script>
+<script>window.TAIWAN_HOLIDAY_DATA_URL = 'https://raw.githubusercontent.com/lennox0909/taiwan-holidays/main/data/holiday_data.csv';</script>
 <script type="module" src="{{ '/taiwan-holidays/js/main.js' | relative_url }}"></script>

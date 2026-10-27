@@ -11,14 +11,18 @@ export async function fetchHolidayData(updateStatusCallback) {
 
     if (cachedTime && cachedData && (now - parseInt(cachedTime) < CACHE_DURATION_MS)) {
         try {
-            holidayData = JSON.parse(cachedData);
-            updateStatusCallback(true, true);
-            return;
+            const parsed = JSON.parse(cachedData);
+            // 確保快取內已經包含 2027 年資料，若無則強制重新下載
+            if (parsed['2027-01-01']) {
+                holidayData = parsed;
+                updateStatusCallback(true, true);
+                return;
+            }
         } catch (e) { console.warn('快取解析失敗。'); }
     }
 
     try {
-        const response = await fetch(window.TAIWAN_HOLIDAY_DATA_URL);
+        const response = await fetch(`${window.TAIWAN_HOLIDAY_DATA_URL}?t=${now}`, { cache: 'no-store' });
         if (!response.ok) throw new Error('Network error');
         parseCSV(await response.text());
         localStorage.setItem(CACHE_KEY_DATA, JSON.stringify(holidayData));
