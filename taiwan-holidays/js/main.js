@@ -28,8 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-current-month-mobile').addEventListener('click', goToCurrentMonth);
 
     // 綁定計算機
-    const showAlert = (msg) => { document.getElementById('alert-message').textContent = msg; document.getElementById('alert-modal').classList.replace('hidden', 'flex'); };
-    document.getElementById('btn-close-alert').addEventListener('click', () => document.getElementById('alert-modal').classList.replace('flex', 'hidden'));
+    const showAlert = (msg) => { 
+        document.getElementById('alert-message').textContent = msg; 
+        const alertModal = document.getElementById('alert-modal');
+        alertModal.classList.remove('hidden');
+        alertModal.classList.add('flex');
+    };
+    
+    document.getElementById('btn-close-alert').addEventListener('click', () => {
+        const alertModal = document.getElementById('alert-modal');
+        alertModal.classList.remove('flex');
+        alertModal.classList.add('hidden');
+    });
 
     document.getElementById('btn-calc-year').addEventListener('click', () => {
         const sy = parseInt(document.getElementById('calc-year-start').value), ey = parseInt(document.getElementById('calc-year-end').value);
@@ -46,16 +56,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 綁定 Modal (快速選擇)
     const picker = document.getElementById('datepicker-modal');
-    document.getElementById('btn-open-picker').addEventListener('click', () => {
-        document.getElementById('picker-year-select').value = currentYear;
-        document.getElementById('picker-month-grid').innerHTML = Array.from({length:12}, (_,i) => `<button class="py-2 rounded-lg font-medium ${i===currentMonth?'bg-blue-600 text-white':'border hover:bg-blue-50 bg-white'}" data-m="${i}">${i+1} 月</button>`).join('');
-        picker.classList.replace('hidden', 'flex');
-    });
-    document.getElementById('btn-close-picker').addEventListener('click', () => picker.classList.replace('flex', 'hidden'));
-    document.getElementById('picker-month-grid').addEventListener('click', (e) => {
-        if(e.target.tagName === 'BUTTON') {
-            setYearMonth(parseInt(document.getElementById('picker-year-select').value), parseInt(e.target.dataset.m));
-            picker.classList.replace('flex', 'hidden');
-        }
-    });
+    const openBtn = document.getElementById('btn-open-picker');
+    const closeBtn = document.getElementById('btn-close-picker');
+    const pickerGrid = document.getElementById('picker-month-grid');
+
+    if (picker && openBtn && closeBtn) {
+        // 開啟 Modal
+        openBtn.addEventListener('click', () => {
+            document.getElementById('picker-year-select').value = currentYear;
+            pickerGrid.innerHTML = Array.from({length: 12}, (_, i) => 
+                `<button class="py-2 rounded-lg font-medium transition-colors ${i === currentMonth ? 'bg-blue-600 text-white' : 'border border-slate-200 hover:bg-blue-50 text-slate-700 bg-white'}" data-m="${i}">${i + 1} 月</button>`
+            ).join('');
+            picker.classList.remove('hidden');
+            picker.classList.add('flex');
+        });
+
+        // 點擊 X 關閉 Modal
+        closeBtn.addEventListener('click', () => {
+            picker.classList.remove('flex');
+            picker.classList.add('hidden');
+        });
+
+        // 點擊半透明背景也能關閉
+        picker.addEventListener('click', (e) => {
+            if (e.target === picker) {
+                picker.classList.remove('flex');
+                picker.classList.add('hidden');
+            }
+        });
+
+        // 點擊月份按鈕時更新日曆並關閉 Modal
+        pickerGrid.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                setYearMonth(parseInt(document.getElementById('picker-year-select').value), parseInt(e.target.dataset.m));
+                picker.classList.remove('flex');
+                picker.classList.add('hidden');
+            }
+        });
+    }
 });
