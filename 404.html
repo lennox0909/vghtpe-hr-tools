@@ -1,0 +1,18 @@
+---
+permalink: /404.html
+---
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>重新導向中...</title>
+    <!-- 第一道保險：0 秒後自動轉跳回首頁 -->
+    <meta http-equiv="refresh" content="0; url={{ '/' | relative_url }}">
+</head>
+<body>
+    <script>
+        // 第二道保險：透過 JavaScript 強制轉跳回首頁
+        window.location.replace("{{ '/' | relative_url }}");
+    </script>
+</body>
+</html>
