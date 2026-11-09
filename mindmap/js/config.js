@@ -13,6 +13,22 @@ export const DOM = {
     btnInsertFold: document.getElementById('btn-insert-fold'),
     btnIndentLess: document.getElementById('btn-indent-less'),
     btnIndentMore: document.getElementById('btn-indent-more'),
+
+    // 搜尋面板相關 DOM
+    btnSearchToggle: document.getElementById('btn-search-toggle'),
+    searchPanel: document.getElementById('search-panel'),
+    searchPanelHeader: document.getElementById('search-panel-header'),
+    btnToggleReplace: document.getElementById('btn-toggle-replace'),
+    iconReplaceChevron: document.getElementById('icon-replace-chevron'),
+    inputFind: document.getElementById('input-find'),
+    inputReplace: document.getElementById('input-replace'),
+    btnFindPrev: document.getElementById('btn-find-prev'),
+    btnFindNext: document.getElementById('btn-find-next'),
+    btnCloseSearch: document.getElementById('btn-close-search'),
+    replaceRow: document.getElementById('replace-row'),
+    btnReplace: document.getElementById('btn-replace'),
+    btnReplaceAll: document.getElementById('btn-replace-all'),
+
     btnDownload: document.getElementById('btn-download'),
     btnDownloadMd: document.getElementById('btn-download-md'),
     saveStatus: document.getElementById('save-status'),

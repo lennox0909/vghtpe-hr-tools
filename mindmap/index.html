@@ -8,9 +8,14 @@ hide_footer: true
 <link rel="stylesheet" href="../assets/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
-<!-- 引入 CodeMirror 實現語法高亮與行號 -->
+<!-- 引入 CodeMirror Syntax Highlighting & Line Number -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+
+<!-- 1. 必須「先」載入 CodeMirror 核心引擎 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+
+<!-- 2. 「再」載入搜尋游標擴充套件與 Markdown 語法 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
 
 <!-- 引入 KaTeX 實現 LaTeX 數學公式與排版渲染 -->
@@ -109,6 +114,10 @@ hide_footer: true
                     <button id="btn-indent-more" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="增加層級 (Tab)">
                         <i class="fa-solid fa-indent"></i>
                     </button>
+                    <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                    <button id="btn-search-toggle" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="尋找/取代 (Ctrl+F)">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
                 </div>
 
                 <!-- 【補回】自動儲存提示 (解決 main.js classList null 報錯) -->
@@ -139,10 +148,47 @@ hide_footer: true
                 </button>
             </div>
         </div>
+
         <!-- 由 CodeMirror 接管 -->
         <div class="flex-1 w-full h-full relative">
+            
+            <!-- 尋找與取代面板 (支援拖曳) -->
+            <div id="search-panel" class="absolute top-2 right-2 z-30 bg-white border border-slate-200 shadow-lg rounded-lg flex flex-col w-[340px] hidden overflow-hidden">
+                <!-- 拖曳手把 (藍色標題列) -->
+                <div id="search-panel-header" class="bg-slate-100 hover:bg-slate-200 cursor-move py-1 px-2 flex justify-between items-center border-b border-slate-200 transition-colors">
+                    <span class="text-[10px] text-slate-500 font-medium select-none flex items-center gap-1">
+                        <i class="fa-solid fa-grip-dots-vertical"></i> 尋找與取代
+                    </span>
+                    <button id="btn-close-search" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded transition-colors" title="關閉 (Esc)">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+                <!-- 搜尋面板內容區 -->
+                <div class="p-2 flex flex-col gap-2">
+                    <div class="flex items-center gap-1">
+                        <button id="btn-toggle-replace" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded transition-colors" title="切換取代">
+                            <i class="fa-solid fa-chevron-right text-xs transition-transform duration-200" id="icon-replace-chevron"></i>
+                        </button>
+                        <input type="text" id="input-find" class="flex-1 px-2 py-1.5 border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm" placeholder="尋找">
+                        <button id="btn-find-prev" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded transition-colors" title="上一個 (Shift+Enter)">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                        </button>
+                        <button id="btn-find-next" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded transition-colors" title="下一個 (Enter)">
+                            <i class="fa-solid fa-arrow-down text-sm"></i>
+                        </button>
+                    </div>
+                    <div id="replace-row" class="flex items-center gap-1 hidden">
+                        <div class="w-7 shrink-0"></div>
+                        <input type="text" id="input-replace" class="flex-1 px-2 py-1.5 border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm" placeholder="取代">
+                        <button id="btn-replace" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 rounded text-xs font-medium transition-colors whitespace-nowrap text-slate-700">取代</button>
+                        <button id="btn-replace-all" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 rounded text-xs font-medium transition-colors whitespace-nowrap text-slate-700">全部取代</button>
+                    </div>
+                </div>
+            </div>
+
             <textarea id="editor" class="hidden"></textarea>
         </div>
+
     </section>
 
     <!-- 拖曳調整桿 (Resizer) -->
