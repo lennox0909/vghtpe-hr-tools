@@ -20,3 +20,21 @@ textarea:focus { outline: none; }
 @media (max-width: 768px) {
     .CodeMirror { font-size: 0.875rem; }
 }
+
+/* 確保 CodeMirror 編輯器本體填滿整個左側容器，並正常處理內部捲動 */
+.CodeMirror {
+    height: 100% !important;
+    width: 100% !important;
+    flex-grow: 1;
+}
+
+/* 提高游標層級，防止被其他絕對定位的行號或背景遮擋 */
+.CodeMirror-cursors {
+    z-index: 10 !important;
+}
+
+/* 確保 Flex 容器在縮放時不會破壞 CodeMirror 的寬度計算 */
+.CodeMirror-scroll {
+    min-height: 0;
+    min-width: 0;
+}

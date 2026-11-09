@@ -38,6 +38,18 @@ DOM.btnFit.addEventListener('click', fitMindmap);
 DOM.btnZoomIn.addEventListener('click', () => zoomMindmap(1.2));
 DOM.btnZoomOut.addEventListener('click', () => zoomMindmap(0.8));
 
+// 【核心修復】：透過 ResizeObserver 監聽編輯器外層容器的大小變化
+// 確保拖曳分隔線或縮放視窗時，CodeMirror 游標與渲染座標即時重置
+const editorObserver = new ResizeObserver(() => {
+    if (cmEditor && typeof cmEditor.refresh === 'function') {
+        cmEditor.refresh();
+    }
+});
+
+if (DOM.editorPane) {
+    editorObserver.observe(DOM.editorPane);
+}
+
 // 啟動佈局與檔案 IO 事件
 initLayout(cmEditor, fitMindmap);
 initFileIO(cmEditor, debounceUpdate);
