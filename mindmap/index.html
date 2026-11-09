@@ -96,9 +96,14 @@ title: 心智圖即時編輯器
                 <span id="save-status" class="text-xs text-emerald-600 font-normal opacity-0 transition-opacity duration-300">已自動儲存</span>
             </div>
             <div class="flex items-center gap-2 md:gap-3">
+
+                <button id="btn-insert-fold" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm active:scale-95">
+                    <i class="fa-solid fa-compress"></i> 插入節點摺疊記號
+                </button>
                 <span class="hidden lg:inline text-xs font-normal mr-1">支援 HTML & 數學公式</span>
 
                 <!--  已移除原有的字體放大縮小按鈕 (A-, A+) 區塊 -->
+
 
                 <input type="file" id="file-import" accept=".md,.txt" class="hidden">
                 <button id="btn-import-file" class="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1.5 rounded-md transition-colors shadow-sm flex items-center gap-1" title="匯入 Markdown 或 TXT 檔案">

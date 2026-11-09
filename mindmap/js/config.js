@@ -10,6 +10,7 @@ export const DOM = {
     btnZoomIn: document.getElementById('btn-zoom-in'),
     btnZoomOut: document.getElementById('btn-zoom-out'),
     fitText: document.getElementById('fit-text'),
+    btnInsertFold: document.getElementById('btn-insert-fold'),
     btnDownload: document.getElementById('btn-download'),
     btnDownloadMd: document.getElementById('btn-download-md'),
     saveStatus: document.getElementById('save-status'),

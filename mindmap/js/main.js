@@ -32,6 +32,14 @@ DOM.btnClearEditor.addEventListener('click', async () => {
     }
 });
 
+// 👇 新增的「插入摺疊註記」按鈕 (獨立寫在下方)
+if (DOM.btnInsertFold) {
+    DOM.btnInsertFold.addEventListener('click', () => {
+        cmEditor.replaceSelection('<!-- markmap: fold -->\n');
+        cmEditor.focus();
+    });
+}
+
 DOM.selExpand.addEventListener('change', () => debounceUpdate(cmEditor.getValue()));
 DOM.selColor.addEventListener('change', () => debounceUpdate(cmEditor.getValue()));
 DOM.btnFit.addEventListener('click', fitMindmap);
