@@ -1,6 +1,7 @@
 ---
 layout: default
-title: 心智圖即時編輯器
+title: 心智圖編輯器
+hide_footer: true
 ---
 
 <!-- 引入 Tailwind CSS & D3.js (Markmap 核心依賴) -->
@@ -90,30 +91,51 @@ title: 心智圖即時編輯器
     
     <!-- 左側編輯區 -->
     <section id="editor-pane" class="w-full h-1/2 md:w-2/5 md:h-full bg-white flex flex-col shadow-inner transition-colors duration-300 flex-shrink-0">
-        <div class="bg-gray-100 px-4 py-3 text-sm md:text-base font-semibold text-gray-500 border-b border-gray-200 flex justify-between items-center transition-colors duration-300">
-            <div class="flex items-center gap-2">
-                <span>Markdown 編輯區</span>
-                <span id="save-status" class="text-xs text-emerald-600 font-normal opacity-0 transition-opacity duration-300">已自動儲存</span>
+        <!-- 編輯區頂部工具列 -->
+        <div class="sticky top-0 z-20 flex items-center justify-between p-3 border-b border-slate-200 bg-slate-50 shrink-0 overflow-x-auto">
+            
+            <!-- 左側群組：標題、縮排控制與儲存狀態 -->
+            <div class="flex items-center gap-3 shrink-0">
+                <h2 class="text-sm font-bold text-slate-700 whitespace-nowrap">Markdown 編輯區</h2>
+                
+                <!-- 分隔線 -->
+                <div class="w-px h-5 bg-slate-300"></div>
+                
+                <!-- 縮排按鈕群組 -->
+                <div class="flex items-center gap-1">
+                    <button id="btn-indent-less" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="減少層級 (Shift+Tab)">
+                        <i class="fa-solid fa-outdent"></i>
+                    </button>
+                    <button id="btn-indent-more" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="增加層級 (Tab)">
+                        <i class="fa-solid fa-indent"></i>
+                    </button>
+                </div>
+
+                <!-- 【補回】自動儲存提示 (解決 main.js classList null 報錯) -->
+                <span id="save-status" class="text-xs text-emerald-600 font-medium opacity-0 transition-opacity duration-300 whitespace-nowrap ml-1">
+                    <i class="fa-solid fa-check"></i> 已自動儲存
+                </span>
             </div>
-            <div class="flex items-center gap-2 md:gap-3">
 
-                <button id="btn-insert-fold" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm active:scale-95">
-                    <i class="fa-solid fa-compress"></i> 插入節點摺疊記號
+            <!-- 右側群組：功能按鈕 -->
+            <div class="flex items-center gap-2 shrink-0 ml-4">
+                <button id="btn-insert-fold" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-compress"></i> 插入摺疊註記
                 </button>
-                <span class="hidden lg:inline text-xs font-normal mr-1">支援 HTML & 數學公式</span>
 
-                <!--  已移除原有的字體放大縮小按鈕 (A-, A+) 區塊 -->
-
-
+                <span class="text-xs text-slate-400 font-medium hidden lg:inline-block px-1 whitespace-nowrap">
+                    支援 HTML & 數學公式
+                </span>
+                
+                <!-- 【補回】隱藏的檔案上傳輸入框 (解決 file-io.js addEventListener null 報錯) -->
                 <input type="file" id="file-import" accept=".md,.txt" class="hidden">
-                <button id="btn-import-file" class="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1.5 rounded-md transition-colors shadow-sm flex items-center gap-1" title="匯入 Markdown 或 TXT 檔案">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <span class="hidden xl:inline">匯入檔案</span>
+                
+                <button id="btn-import-file" class="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-file-import"></i> 匯入檔案
                 </button>
                 
-                <button id="btn-clear-editor" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded-md transition-colors shadow-sm flex items-center gap-1" title="清除所有內容">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span class="hidden xl:inline">清除內容</span>
+                <button id="btn-clear-editor" class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can"></i> 清除內容
                 </button>
             </div>
         </div>

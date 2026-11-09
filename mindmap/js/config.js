@@ -11,6 +11,8 @@ export const DOM = {
     btnZoomOut: document.getElementById('btn-zoom-out'),
     fitText: document.getElementById('fit-text'),
     btnInsertFold: document.getElementById('btn-insert-fold'),
+    btnIndentLess: document.getElementById('btn-indent-less'),
+    btnIndentMore: document.getElementById('btn-indent-more'),
     btnDownload: document.getElementById('btn-download'),
     btnDownloadMd: document.getElementById('btn-download-md'),
     saveStatus: document.getElementById('save-status'),

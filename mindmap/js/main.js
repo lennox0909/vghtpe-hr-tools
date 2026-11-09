@@ -17,7 +17,7 @@ const debounceUpdate = (markdown, isInitialLoad = false) => {
         updateMindmap(markdown, isInitialLoad);
         if (!isInitialLoad) {
             localStorage.setItem(STORAGE_KEY, markdown);
-            DOM.saveStatus.classList.remove('opacity-0');
+            DOM.saveStatus?.classList.remove('opacity-0');
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => DOM.saveStatus.classList.add('opacity-0'), 2000);
         }
@@ -39,6 +39,23 @@ if (DOM.btnInsertFold) {
         cmEditor.focus();
     });
 }
+
+// 減少層級 (Outdent)
+if (DOM.btnIndentLess) {
+    DOM.btnIndentLess.addEventListener('click', () => {
+        cmEditor.execCommand('indentLess'); // 呼叫 CodeMirror 內建減少縮排指令
+        cmEditor.focus();
+    });
+}
+
+// 增加層級 (Indent)
+if (DOM.btnIndentMore) {
+    DOM.btnIndentMore.addEventListener('click', () => {
+        cmEditor.execCommand('indentMore'); // 呼叫 CodeMirror 內建增加縮排指令
+        cmEditor.focus();
+    });
+}
+
 
 DOM.selExpand.addEventListener('change', () => debounceUpdate(cmEditor.getValue()));
 DOM.selColor.addEventListener('change', () => debounceUpdate(cmEditor.getValue()));
