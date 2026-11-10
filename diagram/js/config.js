@@ -1,5 +1,5 @@
 export const DOM = {
-    editor: document.getElementById('editor'),
+    editorContainer: document.getElementById('editor-container'),
     preview: document.getElementById('preview'),
     clearBtn: document.getElementById('clearBtn'),
     resizer: document.getElementById('resizer'),

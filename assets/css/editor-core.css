@@ -1,0 +1,31 @@
+/* assets/css/editor-core.css */
+.cm-editor {
+    height: 100% !important;
+    width: 100% !important;
+    outline: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.cm-scroller {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.cm-activeLine {
+    background-color: rgba(236, 244, 255, 0.6) !important;
+}
+.cm-activeLineGutter {
+    background-color: rgba(219, 234, 254, 0.8) !important;
+}
+
+.cm-gutters {
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e5e7eb !important;
+    color: #94a3b8 !important;
+}

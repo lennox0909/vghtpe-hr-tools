@@ -4,7 +4,10 @@ export const DOM = {
     btnToggleEditor: document.getElementById('btn-toggle-editor'),
     editorPane: document.getElementById('editor-pane'),
     resizer: document.getElementById('resizer'),
-    editor: document.getElementById('editor'),
+    
+    // 👇 更新為 CodeMirror 6 掛載用的容器
+    editorContainer: document.getElementById('editor-container'),
+    
     svgEl: document.getElementById('mindmap'),
     btnFit: document.getElementById('btn-fit'),
     btnZoomIn: document.getElementById('btn-zoom-in'),
@@ -14,20 +17,8 @@ export const DOM = {
     btnIndentLess: document.getElementById('btn-indent-less'),
     btnIndentMore: document.getElementById('btn-indent-more'),
 
-    // 搜尋面板相關 DOM
+    // 保留觸發 CM6 內建搜尋面板的放大鏡按鈕
     btnSearchToggle: document.getElementById('btn-search-toggle'),
-    searchPanel: document.getElementById('search-panel'),
-    searchPanelHeader: document.getElementById('search-panel-header'),
-    btnToggleReplace: document.getElementById('btn-toggle-replace'),
-    iconReplaceChevron: document.getElementById('icon-replace-chevron'),
-    inputFind: document.getElementById('input-find'),
-    inputReplace: document.getElementById('input-replace'),
-    btnFindPrev: document.getElementById('btn-find-prev'),
-    btnFindNext: document.getElementById('btn-find-next'),
-    btnCloseSearch: document.getElementById('btn-close-search'),
-    replaceRow: document.getElementById('replace-row'),
-    btnReplace: document.getElementById('btn-replace'),
-    btnReplaceAll: document.getElementById('btn-replace-all'),
 
     btnDownload: document.getElementById('btn-download'),
     btnDownloadMd: document.getElementById('btn-download-md'),
