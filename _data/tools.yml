@@ -41,3 +41,9 @@
   icon: fa-wand-magic-sparkles
   color_theme: indigo
   description: 115年版本【需連線使用】
+
+- title: 加班餘數計算機
+  url: ./overtime-pay/
+  icon: fa-wand-magic-sparkles
+  color_theme: indigo
+  description: 【需連線使用】

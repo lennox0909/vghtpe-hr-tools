@@ -14,12 +14,15 @@
     
     {{ content }}
     
+    <!-- 加入 unless 條件判斷，當頁面設定 hide_footer: true 時隱藏 -->
+    {% unless page.hide_footer %}
     <footer class="py-8 text-center border-t border-slate-200 mt-12 bg-white">
         <p class="text-slate-500 text-sm font-medium">© 2026 臺北榮民總醫院 人事室</p>
         <p class="text-slate-500 text-sm font-medium">建議使用 Chrome 瀏覽器給您最佳體驗</p>
         <!-- <p class="text-slate-400 text-[11px] mt-2 uppercase tracking-widest"> based on Ruby & Jekyll</p> -->
         <p class="text-slate-400 text-[11px] mt-2 tracking-widest"> Powered by Ruby & WebGPU</p>
     </footer>
+    {% endunless %}
 
     <!-- 維護人員連絡方式 -->
     {% include modal.html %}

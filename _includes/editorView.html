@@ -1,0 +1,92 @@
+<!-- 1. CodeMirror 6 ES Modules Import Map (自動抓取最新穩定版) -->
+<script type="importmap">
+{
+  "imports": {
+    "codemirror": "https://esm.sh/codemirror",
+    "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown",
+    "@codemirror/language-data": "https://esm.sh/@codemirror/language-data",
+    "@codemirror/state": "https://esm.sh/@codemirror/state",
+    "@codemirror/view": "https://esm.sh/@codemirror/view",
+    "@codemirror/search": "https://esm.sh/@codemirror/search"
+  }
+}
+</script>
+
+<!-- 載入共用的編輯器核心樣式 -->
+<link rel="stylesheet" href="{{ '/assets/css/editor-core.css' | relative_url }}">
+
+<!-- 2. 注入各 Web App 專屬的 <head> 資源 (如 D3, KaTeX, Mermaid) -->
+{{ include.custom_head }}
+
+<!-- 3. App 頂部控制列 (藍色 Banner) -->
+{% if include.app_title %}
+<div class="sticky-subnav bg-blue-800 text-white p-3 md:p-4 shadow-md flex flex-wrap justify-between items-center transition-colors flex-shrink-0 z-30 gap-3">
+    <div class="flex items-center gap-2 font-bold tracking-wide">
+        {{ include.app_icon | default: '<i class="fa-solid fa-code"></i>' }}
+        <span>{{ include.app_title }}</span>
+    </div>
+    
+    <!-- 注入各 App 專屬的控制項 -->
+    <div class="flex items-center gap-2 md:gap-3 flex-grow justify-end sm:flex-grow-0">
+        {{ include.app_controls }}
+    </div>
+</div>
+{% endif %}
+
+<!-- 4. 左右分割工作區 -->
+<div id="main-container" class="subpage-workspace flex flex-col md:flex-row overflow-hidden relative w-full text-slate-800">
+    
+    <!-- 左側：共用編輯區面板 -->
+    <section id="editor-pane" class="w-full h-1/2 md:w-2/5 md:h-full bg-white flex flex-col shadow-inner shrink-0 relative">
+        
+        <!-- 編輯區共用工具列 -->
+        <div class="sticky top-0 z-20 flex items-center justify-between p-3 border-b border-slate-200 bg-slate-50 shrink-0 overflow-x-auto">
+            <div class="flex items-center gap-3 shrink-0">
+                <h2 class="text-sm font-bold text-slate-700 whitespace-nowrap">{{ include.editor_title | default: "編輯區" }}</h2>
+                <div class="w-px h-5 bg-slate-300"></div>
+                
+                <!-- 共用：縮排與尋找功能 -->
+                <div class="flex items-center gap-1">
+                    <button id="btn-indent-less" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="減少層級"><i class="fa-solid fa-outdent"></i></button>
+                    <button id="btn-indent-more" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="增加層級"><i class="fa-solid fa-indent"></i></button>
+                    <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                    <!-- 此按鈕將用來觸發 CM6 內建的極簡尋找面板 -->
+                    <button id="btn-search-toggle" class="text-slate-500 hover:text-blue-600 hover:bg-blue-100 w-7 h-7 flex items-center justify-center rounded transition-colors" title="尋找/取代 (Ctrl+F)"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+                
+                <span id="save-status" class="text-xs text-emerald-600 font-medium opacity-0 transition-opacity ml-1 whitespace-nowrap">
+                    <i class="fa-solid fa-check"></i> 已自動儲存
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0 ml-4">
+                <!-- 注入各 App 專屬的編輯器按鈕 -->
+                {{ include.editor_controls }}
+                
+                <!-- 共用：匯入與清除 -->
+                <input type="file" id="file-import" accept=".md,.txt" class="hidden">
+                <button id="btn-import-file" class="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap shadow-sm active:scale-95"><i class="fa-solid fa-file-import"></i> 匯入</button>
+                <button id="btn-clear-editor" class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap shadow-sm active:scale-95"><i class="fa-solid fa-trash-can"></i> 清除</button>
+            </div>
+        </div>
+
+        <!-- 編輯器本體 (已移除手刻的舊版 search-panel，改用 CM6 容器) -->
+        <div id="editor-wrapper" class="relative flex-1 min-h-0 w-full overflow-hidden text-[15px]">
+            <!-- CodeMirror 6 會將編輯器動態掛載在這個容器內 -->
+            <div id="editor-container" class="absolute inset-0 w-full h-full"></div>
+        </div>
+    </section>
+
+    <!-- 中央：共用拖曳調整桿 -->
+    <div id="resizer" class="w-full h-3 md:w-3 md:h-full bg-slate-200 hover:bg-blue-400 active:bg-blue-500 flex items-center justify-center cursor-row-resize md:cursor-col-resize z-20 shrink-0 transition-colors">
+        <div class="flex md:flex-col gap-1"><div class="w-1 h-1 bg-slate-400 rounded-full"></div><div class="w-1 h-1 bg-slate-400 rounded-full"></div><div class="w-1 h-1 bg-slate-400 rounded-full"></div></div>
+    </div>
+
+    <!-- 右側：預覽與算繪區 -->
+    <section class="flex-1 relative bg-white overflow-hidden flex flex-col">
+        {{ include.workspace }}
+    </section>
+</div>
+
+<!-- 5. 注入各 Web App 專屬的結尾腳本 -->
+{{ include.custom_scripts }}
