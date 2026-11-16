@@ -5,13 +5,13 @@ import { initFileIO } from './file-io.js';
 import { showModal } from './modal.js';
 
 // ==========================================
-// CodeMirror 6 模組引入 (透過 Import Map)
+// CodeMirror 6 模組引入 (帶有完整 CDN 網址)
 // ==========================================
-import { basicSetup, EditorView } from "codemirror";
-import { markdown } from "@codemirror/lang-markdown";
-import { languages } from "@codemirror/language-data";
-import { openSearchPanel } from "@codemirror/search";
-
+import { basicSetup, EditorView } from "https://esm.sh/codemirror";
+import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
+import { languages } from "https://esm.sh/@codemirror/language-data";
+import { openSearchPanel } from "https://esm.sh/@codemirror/search";
+import { indentMore, indentLess } from "https://esm.sh/@codemirror/commands";
 // ==========================================
 // 1. 自動儲存與算繪 (Debounce) 邏輯
 // ==========================================
@@ -96,17 +96,14 @@ DOM.btnSearchToggle?.addEventListener('click', () => {
     openSearchPanel(cmEditor);
 });
 
-// 簡單的縮排按鈕邏輯 (在游標處插入或刪除雙空格)
+// 完美的縮排按鈕邏輯 (支援單行/多行自動判斷)
 DOM.btnIndentMore?.addEventListener('click', () => {
-    cmEditor.replaceSelection('  ');
+    indentMore(cmEditor);
+    cmEditor.focus();
 });
+
 DOM.btnIndentLess?.addEventListener('click', () => {
-    // 若要完美支援 Outdent，建議未來可在 import map 加入 @codemirror/commands 並使用 indentLess
-    const range = cmEditor.state.selection.main;
-    const line = cmEditor.state.doc.lineAt(range.from);
-    if (line.text.startsWith('  ')) {
-        cmEditor.dispatch({ changes: { from: line.from, to: line.from + 2, insert: '' } });
-    }
+    indentLess(cmEditor);
     cmEditor.focus();
 });
 
@@ -155,7 +152,7 @@ async function initEditor() {
     } else {
         // 優先 3：載入預設的 sample.txt
         try {
-            const response = await fetch(window.MARKMAP_SAMPLE_URL || './sample.txt');
+            const response = await fetch(window.MARKMAP_SAMPLE_URL || './markmap-sample.md');
             const text = response.ok ? await response.text() : `# 歡迎使用心智圖編輯器`;
             cmEditor.setValue(text); 
             debounceUpdate(text, true);

@@ -6,14 +6,14 @@
 
 - title: 圖表即時編輯器
   url: ./diagram/
-  icon: fa-code-branch
+  icon: fa-network-wired
   color_theme: blue
   badge: "prompt：依照我提供的圖片或敘述，幫我生成 Mermaid 流程圖。<br><br>使用您的免費 AI 來製作專業圖表"
   description: 支援 Mermaid、Markdown、KaTeX 程式碼，輕鬆繪製專業流程圖。
 
 - title: 心智圖即時編輯器
   url: ./mindmap/
-  icon: fa-brain
+  icon: fa-code-branch
   color_theme: indigo
   badge: "個人、團隊協作。腦力激盪、激發創意、梳理邏輯、視覺化摘要。支援代理式 AI。"
   description: 下載您的HTML心智圖，豐富您的會議簡報！使用簡單的 Markdown 語法，即可使用動態心智圖 Mindmap 技術。
@@ -32,7 +32,7 @@
 
 - title: 契約人員薪酬計算機
   url: ./payment-calc/
-  icon: fa-wand-magic-sparkles
+  icon: fa-user-clock
   color_theme: indigo
   description: 115年版本【需連線使用】
 
@@ -44,6 +44,35 @@
 
 - title: 加班餘數計算機
   url: ./overtime-pay/
-  icon: fa-wand-magic-sparkles
+  icon: fa-business-time
   color_theme: indigo
-  description: 【需連線使用】
+  description: 【需連線使用、 Google Drive 權限】
+
+
+# fa-brain
+# fa-business-time (公事包 + 時鐘)：最強烈暗示「工作與工時」，非常適合加班主題。
+# fa-file-invoice-dollar (文件 + 金錢)：強調「費用計算與請款單」的意象。
+# fa-hand-holding-dollar (手捧金錢)：強調「計算並發放加班費」。
+# fa-user-clock (人物 + 時鐘)：強調「員工出勤與工時紀錄」。
+# fa-coins 或 fa-sack-dollar：最直觀的「金錢/薪資」圖示。
+
+
+# 1. 通用與長條圖 (最直觀的統計圖)
+# fa-chart-simple：極簡的三根長條圖（粗線條，現代感十足，推薦首選）。
+
+# fa-chart-bar：標準長條圖（帶有 X/Y 軸的經典圖示）。
+
+# fa-chart-column：直立式長條圖。
+
+# 2. 趨勢與折線圖 (適合表現時間序列、業績變化)
+# fa-chart-line：向上攀升的折線圖（帶有強烈的「成長、分析、趨勢」意象）。
+
+# fa-chart-area：面積圖（折線圖下方帶有填滿效果）。
+
+# 3. 分佈與圓餅圖 (適合表現比例)
+# fa-chart-pie：標準圓餅圖（切出一角的圓餅，適合比例、資料分佈）。
+
+# 4. 流程與關聯圖 (如果是針對 Mermaid 圖表編輯器特別推薦)
+# fa-diagram-project：專案架構圖 / 樹狀圖（非常適合用來代表流程圖、組織圖）。
+
+# fa-network-wired：網路關聯圖（適合複雜的心智圖或架構圖）。

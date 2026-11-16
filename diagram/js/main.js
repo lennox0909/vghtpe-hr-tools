@@ -4,10 +4,10 @@ import { initLayout } from './layout.js';
 import { initFileIO } from './file-io.js';
 import { renderContent, initWasm } from './renderer.js';
 
-// 👇 引入 CodeMirror 6 模組
-import { basicSetup, EditorView } from "codemirror";
-import { markdown } from "@codemirror/lang-markdown";
-import { languages } from "@codemirror/language-data";
+// 👇 引入 CodeMirror 6 模組 (帶網址)
+import { basicSetup, EditorView } from "https://esm.sh/codemirror";
+import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
+import { languages } from "https://esm.sh/@codemirror/language-data";
 
 let cmEditor;
 
