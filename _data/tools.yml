@@ -46,7 +46,7 @@
   url: ./overtime-pay/
   icon: fa-business-time
   color_theme: indigo
-  description: 【需連線使用】
+  description: 【需連線使用、 Google Drive 權限】
 
 
 # fa-brain
