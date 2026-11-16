@@ -84,7 +84,7 @@ hide_footer: true
 <!-- 5. 注入頁尾腳本 -->
 {% capture custom_scripts %}
 <script>
-    window.MARKMAP_SAMPLE_URL = "{{ '/mindmap/sample.txt' | relative_url }}";
+    window.MARKMAP_SAMPLE_URL = "{{ '/mindmap/markmap-sample.md' | relative_url }}";
 </script>
 <script type="module" src="{{ '/mindmap/js/main.js' | relative_url }}"></script>
 {% endcapture %}
