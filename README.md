@@ -77,3 +77,6 @@ Feb 2026, `Leno` `Bing-Shi` `Tsai`
     └── default.html
 ```
 
+## Architecture Graph **AutoGen** by **Graphviz**
+
+![Architecture Graph](./assets/images/architecture.svg)

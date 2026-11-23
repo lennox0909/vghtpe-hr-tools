@@ -58,3 +58,5 @@ project_structure.txt
 # =========================
 web-LLM/data/faq.json
 web-LLM/data/search.go
+
+assets/images/architecture.svg

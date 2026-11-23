@@ -35,6 +35,16 @@ jobs:
         with:
           source: ./
           destination: ./_site
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Graphviz & Generate Architecture Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          mkdir -p assets/images
+          node scripts/generate-graph.mjs | dot -Tsvg > assets/images/architecture.svg
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
