@@ -12,12 +12,57 @@ const edges = []; // { from, to, type }
 // 統一轉換為 POSIX 路徑 (相容 Windows 與 Linux)
 const toPosix = (p) => p.split(path.sep).join('/');
 
+// 讀取 _config.yml 的 exclude 清單 (零依賴簡易解析)
+function loadJekyllExcludes() {
+    const configPath = path.join(ROOT, '_config.yml');
+    if (!fs.existsSync(configPath)) return [];
+
+    const lines = fs.readFileSync(configPath, 'utf8').split(/\r?\n/);
+    const excludes = [];
+    let inExclude = false;
+
+    for (const line of lines) {
+        if (/^\s*(#|$)/.test(line)) continue; // 略過空行與純註解
+
+        if (!inExclude) {
+            if (/^exclude:\s*(#.*)?$/.test(line)) {
+                inExclude = true;
+            }
+        } else {
+            const match = line.match(/^\s+-\s+(.+)$/);
+            if (match) {
+                const item = match[1]
+                    .replace(/\s+#.*$/, '')      // 去除行尾註解
+                    .trim()
+                    .replace(/^['"]|['"]$/g, '') // 去除引號
+                    .replace(/^\/+|\/+$/g, '');  // 去除首尾斜線
+                if (item) excludes.push(item);
+            } else if (/^\S/.test(line)) {
+                break; // 遇到下一個頂層鍵值，結束解析
+            }
+        }
+    }
+    return excludes;
+}
+
+const JEKYLL_EXCLUDES = loadJekyllExcludes();
+
+// 判斷檔案或資料夾是否命中 _config.yml 的 exclude 規則
+function isExcluded(fullPath) {
+    const relPath = toPosix(path.relative(ROOT, fullPath));
+    return JEKYLL_EXCLUDES.some(
+        (ex) => relPath === ex || relPath.startsWith(ex + '/')
+    );
+}
+
 // 1. 遞迴掃描專案檔案
 function walk(dir) {
     let results = [];
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         if (IGNORE_DIRS.has(entry.name)) continue;
         const fullPath = path.join(dir, entry.name);
+        if (isExcluded(fullPath)) continue; // 自動略過 _config.yml 排除的資料夾與檔案
+
         if (entry.isDirectory()) {
             results = results.concat(walk(fullPath));
         } else if (VALID_EXTS.has(path.extname(entry.name))) {
@@ -30,7 +75,6 @@ function walk(dir) {
 // 解析相對路徑或 Jekyll 絕對路徑
 function resolveLocalPath(currentFile, targetPath) {
     if (!targetPath || /^(https?:|\/\/|data:)/.test(targetPath)) return null;
-    // 清除 Jekyll Liquid 語法，例如 {{ '/mindmap/js/main.js' | relative_url }}
     const cleaned = targetPath
         .replace(/\{\{\s*['"]([^'"]+)['"]\s*\|\s*relative_url\s*\}\}/g, '$1')
         .split('?')[0]
@@ -43,7 +87,8 @@ function resolveLocalPath(currentFile, targetPath) {
         resolved = path.resolve(path.dirname(currentFile), cleaned);
     }
 
-    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+    // 同時確保被外部引用的目標檔案不在排除清單內
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile() && !isExcluded(resolved)) {
         return toPosix(path.relative(ROOT, resolved));
     }
     return null;
