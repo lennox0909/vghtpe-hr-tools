@@ -11,3 +11,14 @@ baseurl: ""
 sass:
   style: compressed
   quiet_deps: true
+
+exclude:
+  - scripts/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+  - package.json
+  - package-lock.json
+  - tailwind.config.js
+  - README.md
