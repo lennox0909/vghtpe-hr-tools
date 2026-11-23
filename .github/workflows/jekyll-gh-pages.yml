@@ -30,11 +30,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./
-          destination: ./_site
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -45,6 +41,12 @@ jobs:
           sudo apt-get install -y graphviz
           mkdir -p assets/images
           node scripts/generate-graph.mjs | dot -Tsvg > assets/images/architecture.svg
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
