@@ -22,3 +22,4 @@ exclude:
   - package-lock.json
   - tailwind.config.js
   - README.md
+  - system-refactoring/
