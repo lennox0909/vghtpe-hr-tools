@@ -46,8 +46,13 @@
   url: ./overtime-pay/
   icon: fa-business-time
   color_theme: indigo
-  description: 【需連線使用、 Google Drive 權限】
+  description: 【需連線使用、 需指定 Google Drive 權限】
 
+- title: 人事資料視覺化
+  url: ./hrbi/
+  icon: fa-chart-simple
+  color_theme: indigo
+  description: 【需連線使用、 需指定 Google Drive 權限】
 
 # fa-brain
 # fa-business-time (公事包 + 時鐘)：最強烈暗示「工作與工時」，非常適合加班主題。
